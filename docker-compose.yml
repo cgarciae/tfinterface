@@ -1,0 +1,34 @@
+version: '2'
+
+volumes:
+  data:
+
+services:
+
+  docs:
+    # update gh-pages => git subtree push --prefix docs/tfinterface origin gh-pages
+    build:
+      context: ./docker
+      dockerfile: python35.dockerfile
+    volumes:
+      - ./:/tfinterface
+    working_dir: /root
+    command: bash -c "pip install -e /tfinterface && /tfinterface/tasks/gen_docs"
+
+  test27:
+    build:
+      context: ./docker
+      dockerfile: python27.dockerfile
+    volumes:
+      - ./:/tfinterface
+    working_dir: /tfinterface
+    command: py.test -v -s -x --pdb -p no:sugar
+
+  test35:
+    build:
+      context: ./docker
+      dockerfile: python35.dockerfile
+    volumes:
+      - ./:/tfinterface
+    working_dir: /tfinterface
+    command: py.test -v -s -x --pdb -p no:sugar

@@ -1,0 +1,10 @@
+#! /bin/bash
+set -e
+
+find . -name "*.pyc" -delete
+echo "Making README.md"
+python tasks/create_readme.py
+echo "Generating docs"
+rm -fr docs
+pdoc --html-dir=docs --html --all-submodules --overwrite tfinterface
+echo "Finished"

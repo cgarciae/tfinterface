@@ -1,0 +1,11 @@
+from tensorbuilder.api import *
+import tensorflow as tf
+from tfinterface.base import ModelBase
+
+
+class TestBase(object):
+
+    def test_base(self):
+
+        assert ModelBase()
+
