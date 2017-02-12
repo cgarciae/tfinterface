@@ -26,6 +26,8 @@ setup(
     url = "https://github.com/cgarciae/tfinterface",
    	packages = [
         'tfinterface',
+        'tfinterface.interfaces',
+        'tfinterface.supervised',
         'tfinterface.tests'
     ],
     package_data={

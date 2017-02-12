@@ -1,0 +1,7 @@
+
+
+class Required(object): pass
+class RequiredTensor(Required): pass
+
+REQUIRED = Required()
+TENSOR = RequiredTensor()

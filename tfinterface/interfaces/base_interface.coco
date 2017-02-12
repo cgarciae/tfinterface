@@ -1,0 +1,23 @@
+from abc import ABCMeta, abstractmethod
+
+
+class BaseInterface(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def __init__(self, *args, **kwargs): pass
+
+    @abstractmethod
+    def define_model(self, *args, **kwargs): pass
+
+    @abstractmethod
+    def initialize_variables(self): pass
+
+    @abstractmethod
+    def save(self, model_path): pass
+
+    @abstractmethod
+    def restore(self, model_path): pass
+
+    @abstractmethod
+    def get_trainer(self): pass

@@ -1,0 +1,19 @@
+from abc import ABCMeta, abstractmethod
+from tfinterface.utils import TENSOR
+
+from .base_interface import BaseInterface
+
+class SupervisedInterface(BaseInterface):
+    __metaclass__ = ABCMeta
+
+    x = TENSOR
+    y = TENSOR
+    loss = TENSOR
+    update = TENSOR
+    summaries = TENSOR
+
+    @abstractmethod
+    def predict_feed(self): pass
+
+    @abstractmethod
+    def predict(X, **kwargs): pass

@@ -13,7 +13,7 @@ services:
     volumes:
       - ./:/tfinterface
     working_dir: /root
-    command: bash -c "pip install -e /tfinterface && /tfinterface/tasks/gen_docs"
+    command: bash -c "pip install -e /tfinterface && cd /tfinterface && tasks/gen_docs"
 
   test27:
     build:

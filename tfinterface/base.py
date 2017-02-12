@@ -1,4 +1,0 @@
-
-
-class ModelBase(object):
-    pass
