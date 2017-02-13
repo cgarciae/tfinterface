@@ -3,7 +3,7 @@ import random
 import tensorflow as tf
 
 from tfinterface.model_base import ModelBase
-from tfinterface.interfaces import SupervisedInterface
+from tfinterface.interfaces import SupervisedInterface, TrainerInterface
 from tfinterface.utils import TENSOR
 
 class SupervisedModel(ModelBase, SupervisedInterface):
@@ -18,15 +18,6 @@ class SupervisedModel(ModelBase, SupervisedInterface):
     def predict_feed(self, x, **kwargs):
         return {self.x: x}
 
-    def set_summaries(self):
-        with self.graph.as_default():
-            if self.summaries is TENSOR: #not set
-                self.summaries = tf.summary.merge_all()
-
-            if self.summaries is None:
-                self.summaries = tf.no_op()
-
-
     def fit(self, *args, **kwargs):
         self.trainer.fit(*args, **kwargs)
 
@@ -34,7 +25,7 @@ class SupervisedModel(ModelBase, SupervisedInterface):
         return SupervisedTrainer(self)
 
 
-class SupervisedTrainer(object):
+class SupervisedTrainer(TrainerInterface):
     """docstring for SupervisedTrainer."""
     def __init__(self, model):
         super(SupervisedTrainer, self).__init__()

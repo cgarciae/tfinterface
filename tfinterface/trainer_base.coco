@@ -1,0 +1,8 @@
+from .interfaces import TrainerInterface
+
+
+class TrainerBase(TrainerInterface):
+
+    def __init__(self, model):
+        self.model = model
+

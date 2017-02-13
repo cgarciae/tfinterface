@@ -1,2 +1,4 @@
-from .base_interface import BaseInterface
+from .model_base import BaseInterface
 from .supervised import SupervisedInterface
+from .reinforcement import ReinforcementInterface
+from .trainer import TrainerInterface

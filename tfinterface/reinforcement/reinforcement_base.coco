@@ -1,0 +1,38 @@
+from tfinterface.interfaces import ReinforcementInterface, TrainerInterface
+from tfinterface.model_base import ModelBase
+from tfinterface.trainer_base import TrainerBase
+
+class ReinforcementModel(ModelBase, ReinforcementInterface):
+    """docstring for ReinforcementModel."""
+
+    def predict(self, s, *args, **kwargs):
+        feed_dict = self.predict_feed(s, **kwargs)
+        actions = self.sess.run(self.h, feed_dict=feed_dict)
+        return choose_action(actions, *args, **kwargs)
+
+    def predict_feed(self, s, **kwargs):
+        return {self.s: s}
+
+    def fit_feed(self, s, a, r, s1, **kwargs):
+        return {self.s: s, self.a: a, self.r: r, self.s1: s1}
+
+    def fit(self, *args, **kwargs):
+        self.trainer.fit(*args, **kwargs)
+
+
+class ReinforcementTrainer(TrainerBase):
+    """docstring for ReinforcementTrainer."""
+
+    def fit(self, env, episodes=1000):
+
+        s = env.reset()
+        self.model.reset()
+
+        for i in xrange(episodes):
+
+
+
+
+
+
+

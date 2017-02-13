@@ -1,8 +1,12 @@
 from abc import ABCMeta, abstractmethod
+from tfinterface.utils import TENSOR
 
 
 class BaseInterface(object):
     __metaclass__ = ABCMeta
+
+    summaries = TENSOR
+    update = TENSOR
 
     @abstractmethod
     def __init__(self, *args, **kwargs): pass

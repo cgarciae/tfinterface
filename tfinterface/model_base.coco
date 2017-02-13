@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 from abc import ABCMeta, abstractmethod
-from .interfaces.base_interface import BaseInterface
-from .utils import Required
+from .interfaces.model_base import BaseInterface
+from .utils import Required, TENSOR
 
 
 class ModelBase(BaseInterface):
@@ -57,3 +57,11 @@ class ModelBase(BaseInterface):
         self.sess.close()
         self.sess = tf.Session(graph=self.graph)
         self.saver.restore(self.sess, model_path)
+
+    def set_summaries(self):
+        with self.graph.as_default():
+            if self.summaries is TENSOR: #not set
+                self.summaries = tf.summary.merge_all()
+
+            if self.summaries is None:
+                self.summaries = tf.no_op()

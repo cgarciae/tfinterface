@@ -3,14 +3,17 @@ from tfinterface.utils import TENSOR
 
 from .model_base import BaseInterface
 
-class SupervisedInterface(BaseInterface):
-    __metaclass__ = ABCMeta
 
-    x = TENSOR
-    y = TENSOR
+class ReinforcementInterface(BaseInterface):
+    """docstring for ReinforcementInterface."""
+
+    s = TENSOR
+    a = TENSOR
+    r = TENSOR
+    s1 = TENSOR
     h = TENSOR
-    loss = TENSOR
 
+    #COMMON METHODS
     @abstractmethod
     def predict(self, *args, **kwargs): pass
 
@@ -22,3 +25,11 @@ class SupervisedInterface(BaseInterface):
 
     @abstractmethod
     def fit(self, *args, **kwargs): pass
+
+    # REINFORCEMENT METHODS
+    @abstractmethod
+    def choose_action(self, *args, **kwargs): pass
+    
+    @abstractmethod
+    def reset(self, *args, **kwargs): pass
+
