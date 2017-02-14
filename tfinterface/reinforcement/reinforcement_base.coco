@@ -23,12 +23,36 @@ class ReinforcementModel(ModelBase, ReinforcementInterface):
 class ReinforcementTrainer(TrainerBase):
     """docstring for ReinforcementTrainer."""
 
-    def fit(self, env, episodes=1000):
-
-        s = env.reset()
-        self.model.reset()
+    def fit(self, episodes=1000):
+        self.env = env
 
         for i in xrange(episodes):
+            s = env.reset()
+            self.model.reset()
+
+            batch_tuples = []
+
+            for j in xrange(episodes):
+
+                a = model.predict(s)
+                s1, r, done, info = env.step(a)
+
+                tup = self.process_action(s, a, r, s1, done, info)
+                batch_tuples.append(tup)
+
+                self.train_on_action(*tup)
+
+                if done: break
+
+
+            batch_tuples = self.process_batch(batch_tuples)
+            self.train_on_batch(*batch_tuples)
+
+            ##
+
+
+
+
 
 
 
