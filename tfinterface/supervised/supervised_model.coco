@@ -21,8 +21,9 @@ class SupervisedModel(ModelBase, SupervisedInterface):
     def fit(self, *args, **kwargs):
         self.trainer.fit(*args, **kwargs)
 
-    def get_trainer(self):
-        return SupervisedTrainer(self)
+    @property
+    def default_trainer(self):
+        return SupervisedTrainer
 
 
 class SupervisedTrainer(TrainerInterface):
@@ -38,8 +39,6 @@ class SupervisedTrainer(TrainerInterface):
         epochs = kwargs.get('epochs', 2000)
 
         model = self.model
-
-        model.set_summaries()
 
         for i in range(epochs):
             [_, summaries] = model.sess.run([model.update, model.summaries], feed_dict=self.feed_fn(batch_size, args, kwargs))

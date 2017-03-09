@@ -1,6 +1,7 @@
 
 from tfinterface.model_base import ModelBase
 from tfinterface.supervised import SupervisedModel
+from tfinterface.reinforcement import ListEpisodeBuffer
 from pytest import raises
 
 
@@ -12,7 +13,8 @@ class TestBase(object):
                 self.y = y
                 self.z = z
 
-            def get_trainer(self) = None
+            @property
+            def default_trainer(self): return lambda x: None
 
         assert SomeModel(42).y == 42
         assert SomeModel(42).z == 1
@@ -42,4 +44,12 @@ class TestBase(object):
             def predict_feed(): pass
 
         assert SomeSupervisedModel()
+
+
+    def test_list_buffer(self):
+        buf = ListEpisodeBuffer()
+        buf.append((5,6))
+
+        assert buf.random_batch(10)[0] == (5,6)
+
 

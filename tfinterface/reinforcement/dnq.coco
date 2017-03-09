@@ -1,0 +1,175 @@
+from tfinterface.model_base import ModelBase
+from tfinterface.utils import select_columns, soft_if
+from .experience_buffer import ExperienceReplay
+
+import numpy as np
+from numpy.random import choice
+import random
+import tensorflow as tf
+from scipy.interpolate import interp1d
+
+class Inputs(object):
+    def __init__(self, n_actions, n_states, y, buffer_length, scope):
+        with tf.variable_scope(scope):
+            self.episode_length = tf.placeholder(tf.int64, [], name='episode_length')
+
+            self.s = tf.placeholder(tf.float32, [None, n_states], name='s')
+            self.a = tf.placeholder(tf.int32, [None], name='a')
+            self.r = tf.placeholder(tf.float32, [None], name='r')
+
+            self.done = tf.placeholder(tf.float32, [None], name='done')
+
+            self.max_Qs1 = tf.placeholder(tf.float32, [None], name='max_Qs1')
+            self.learning_rate = tf.placeholder(tf.float32, [], name='learning_rate')
+
+class Network(object):
+    def __init__(self, base_model, inputs, n_actions, n_states, y, buffer_length, scope):
+        with tf.variable_scope(scope):
+
+            self.Qs = base_model.define_network(inputs, n_actions, n_states)
+
+            self.Qsa = select_columns(self.Qs, inputs.a)
+
+            self.max_Qs = tf.reduce_max(self.Qs, 1)
+
+            self.target = soft_if(inputs.done, inputs.r,  inputs.r + y * inputs.max_Qs1)
+
+            self.error = self.target - self.Qsa
+            self.loss = self.error |> tf.nn.l2_loss |> tf.reduce_mean
+
+            self.variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=scope)
+
+            self.update = tf.train.AdamOptimizer(inputs.learning_rate).minimize(self.loss)
+
+
+            self.episode_length_summary = tf.summary.scalar('episode_length', inputs.episode_length)
+
+            self.summaries = tf.summary.merge([
+                tf.summary.scalar('loss', self.loss),
+                tf.summary.scalar('avg_target', tf.reduce_mean(self.target)),
+                tf.summary.scalar('variables_sum', sum([ tf.reduce_sum(v) for v in self.variables ])),
+                tf.summary.histogram(
+                    'avg_action', (
+                    inputs.a
+                    |> tf.one_hot$(?, 2)
+                    |> tf.reduce_mean$(?, axis=0)
+                ))
+            ]+[
+                tf.summary.histogram('var{}'.format(i), self.variables[i]) for i in range(len(self.variables))
+            ])
+
+
+
+
+class DQN(ModelBase):
+    def define_model(self, n_actions, n_states, y=0.98, buffer_length=500000):
+
+        self.replay_buffer = ExperienceReplay(max_length=buffer_length)
+        self.global_max = float('-inf')
+
+        with self.graph.as_default(), tf.device("cpu:0"):
+            self.inputs = Inputs(n_actions, n_states, y, buffer_length, "inputs")
+            self.network = Network(self, self.inputs, n_actions, n_states, y, buffer_length, "network")
+            self.target_network = Network(self, self.inputs, n_actions, n_states, y, buffer_length, "target_network")
+
+            self.update = self.network.update
+            self.update_target = tf.group(*[
+                tf.assign(t, a) for t, a in zip(self.target_network.variables, self.network.variables)
+            ])
+
+            self.summaries = tf.summary.merge([self.network.summaries, self.target_network.summaries])
+
+
+    def define_network(self, inputs, n_actions, n_states):
+        ops = dict(
+            trainable=True,
+            kernel_initializer=tf.random_uniform_initializer(minval=0.0, maxval=0.01),
+            use_bias=False,
+            bias_initializer=None
+        )
+
+        net = tf.layers.dense(inputs.s, 32, activation=tf.nn.relu, name='relu_layer', **ops)
+        return tf.layers.dense(net, n_actions, name='linear_layer', **ops)
+
+
+
+
+    def fit_feed(self, S, A, R, Max_Qs1, Done, learning_rate):
+        return {
+            self.inputs.s: S, self.inputs.a: A, self.inputs.r: R,
+            self.inputs.max_Qs1: Max_Qs1, self.inputs.done: Done,
+            self.inputs.learning_rate: learning_rate
+        }
+
+    def next_action(self, state, e=0.1):
+        actions = self.sess.run(self.network.Qs, feed_dict={self.inputs.s: [state]})[0]
+        n = len(actions)
+
+        if random.random() < e:
+            return random.randint(0, n-1)
+        else:
+            return np.argmax(actions)
+
+
+
+    def fit(self, env, learning_rate=0.01, e=0.1, print_step=10, episodes=100000, max_episode_length=float('inf'), discount=0.9, batch_size=32):
+        r_total = 0.
+
+        for episode in range(episodes):
+            done = False
+            ep_step = 0
+            r_ep = 0.
+            s = env.reset()
+            episode_length = 0
+
+
+
+            if episode % 20 == 0:
+                self.sess.run(self.update_target)
+
+            while not done and ep_step <= max_episode_length:
+                self.global_step += 1
+                episode_length += 1
+                ep_step += 1
+
+                _learning_rate = learning_rate(self.global_step) if hasattr(learning_rate, '__call__') else learning_rate
+                _e = e(self.global_step) if hasattr(e, '__call__') else e
+
+                a = self.next_action(s, _e)
+                s1, r, done, info = env.step(a)
+                r_total += r
+                r_ep += r
+
+                self.replay_buffer.append((s, a, r, s1, float(done)))
+
+                S, A, R, S1, Done = self.replay_buffer.random_batch(batch_size).unzip()
+                MaxQs1 = self.sess.run(self.target_network.max_Qs, feed_dict={self.inputs.s: S1})
+
+                feed_dict = self.fit_feed(S, A, R, MaxQs1, Done, _learning_rate)
+                _, summaries = self.sess.run([self.update, self.summaries], feed_dict=feed_dict)
+                self.writer.add_summary(summaries)
+
+                s = s1
+
+
+
+            episode_length_summary = self.sess.run(self.network.episode_length_summary, feed_dict={self.inputs.episode_length: episode_length})
+            self.writer.add_summary(episode_length_summary)
+
+            if r_ep > self.global_max:
+                print("[MAX] Episode: {}, Reward: {}, e: {}, learning_rate: {}, buffer_len: {}, episode_length: {}".format(
+                    episode, r_ep, _e, _learning_rate, len(self.replay_buffer), episode_length
+                ))
+                self.save(model_path = self.model_path + ".max")
+                self.save(model_path = self.logs_path + "/Q-network-full.max")
+                self.global_max = episode_length
+
+
+            if episode % print_step == 0 and episode > 0:
+                r_total /= print_step
+                print("[NOR] Episode: {}, avg reward: {}, e: {}, learning_rate: {}, buffer_len: {}, episode_length: {}".format(
+                    episode, r_total, _e, _learning_rate, len(self.replay_buffer), episode_length
+                ))
+                r_total = 0.
+                self.save()
+                self.save(model_path = self.logs_path + "/Q-network-full.model")

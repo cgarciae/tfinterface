@@ -9,3 +9,6 @@ class TrainerInterface(object):
     @abstractmethod
     def fit(self, *args, **kwargs): pass
 
+    @abstractmethod
+    def define_trainer(self, *args, **kwargs): pass
+

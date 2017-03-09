@@ -9,33 +9,30 @@ class ModelBase(BaseInterface):
     __metaclass__ = ABCMeta
 
     def __init__(self, *args, **kwargs):
+        self.global_step = -1
 
         initialize_variables = kwargs.pop("initialize_variables", True)
         restore = kwargs.pop("restore", False)
-        model_path = kwargs.pop("model_path", "model")
-        logs_path = kwargs.pop("logs_path", "logs")
+        self.model_path = kwargs.pop("model_path", "model")
+        self.logs_path = kwargs.pop("logs_path", "logs")
         flush_secs = kwargs.pop("flush_secs", 10.0)
+        self.graph = kwargs.pop("graph", tf.Graph())
 
-        self.graph = tf.Graph()
         self.sess = tf.Session(graph=self.graph)
-        self.model_path = model_path
-        self.logs_path = logs_path
-
-        self.trainer = self.get_trainer()
-
         self.define_model(*args, **kwargs)
 
         if not hasattr(self, 'global_step'):
             self.global_step = 0
 
         with self.graph.as_default():
-            self.writer = tf.summary.FileWriter(logs_path, graph=self.graph, flush_secs=flush_secs)
+            self.set_summaries()
+            self.writer = tf.summary.FileWriter(self.logs_path, graph=self.graph, flush_secs=flush_secs)
             self.saver = tf.train.Saver(allow_empty=True)
 
             if not initialize_variables:
                 return
             elif restore:
-                self.saver.restore(self.sess, model_path)
+                self.saver.restore(self.sess, self.model_path)
             else:
                 self.initialize_variables()
 

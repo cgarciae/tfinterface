@@ -3,6 +3,12 @@ from .interfaces import TrainerInterface
 
 class TrainerBase(TrainerInterface):
 
-    def __init__(self, model):
+    def __init__(self, model, *args, **kwargs):
         self.model = model
+        self.global_step = -1
+
+        self.define_trainer(*args, **kwargs)
+
+    def reset(self):
+        self.global_step = -1
 

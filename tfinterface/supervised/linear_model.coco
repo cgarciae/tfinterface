@@ -1,4 +1,6 @@
 from .supervised_model import SupervisedModel
+import tensorflow as tf
+from tensorflow import layers
 
 class LinearRegression(SupervisedModel):
 
@@ -7,11 +9,18 @@ class LinearRegression(SupervisedModel):
             self.x = tf.placeholder(tf.float32, [None, 1])
             self.y = tf.placeholder(tf.float32, [None, 1])
 
-            self.h = Pipe(self.x, T.linear_layer(1))
+            self.h = self.x |> layers.dense$(?, 1)
 
             error = self.h - self.y
 
-            self.loss = Pipe(error, T.l2_loss().reduce_mean().summary.create_scalar('loss'))
+            self.loss = (
+                error
+                |> tf.nn.l2_loss
+                |> tf.reduce_mean
+            )
+
+            tf.summary.scalar('loss', self.loss)
 
             trainer = tf.train.AdamOptimizer(learning_rate)
-            self.update = trainer.minimize(self.loss) 
+            self.update = trainer.minimize(self.loss)
+            

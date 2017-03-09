@@ -2,3 +2,5 @@ from .model_base import BaseInterface
 from .supervised import SupervisedInterface
 from .reinforcement import ReinforcementInterface
 from .trainer import TrainerInterface
+from .experience_buffer import ExperienceBufferInterface
+from .environment import EnvironmentInterface

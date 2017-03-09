@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from tfinterface.utils import TENSOR
+from tfinterface.utils import TENSOR, EXPERIENCEBUFFER, MODEL
 
 from .model_base import BaseInterface
 
@@ -13,23 +13,17 @@ class ReinforcementInterface(BaseInterface):
     s1 = TENSOR
     h = TENSOR
 
+    experience_buffer = EXPERIENCEBUFFER
+    model = MODEL
+
     #COMMON METHODS
-    @abstractmethod
-    def predict(self, *args, **kwargs): pass
-
-    @abstractmethod
-    def fit_feed(self, *args, **kwargs): pass
-
-    @abstractmethod
-    def predict_feed(self, *args, **kwargs): pass
-
     @abstractmethod
     def fit(self, *args, **kwargs): pass
 
     # REINFORCEMENT METHODS
     @abstractmethod
-    def choose_action(self, *args, **kwargs): pass
-    
+    def next_action(self, *args, **kwargs): pass
+
     @abstractmethod
     def reset(self, *args, **kwargs): pass
 

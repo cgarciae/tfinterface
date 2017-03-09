@@ -1,11 +1,44 @@
-
+import tensorflow as tf
 
 class Required(object): pass
 class RequiredTensor(Required): pass
 class RequiredEnvironment(Required): pass
 class RequiredModel(Required): pass
+class RequiredExperienceBuffer(Required): pass
+class RequiredTrainer(Required): pass
 
 REQUIRED = Required()
 TENSOR = RequiredTensor()
 MODEL = RequiredModel()
 ENV = RequiredEnvironment()
+EXPERIENCEBUFFER = RequiredExperienceBuffer()
+TRAINER = RequiredTrainer()
+
+
+def select_columns(tensor, indexes):
+    idx = tf.stack((tf.range(tf.shape(indexes)[0]), indexes), 1)
+    return tf.gather_nd(tensor, idx)
+
+
+def soft_if(cond, then, else_):
+    return (cond * then) + (1.0 - cond) * else_
+
+
+def map_gradients(gradients, f):
+    return [ (f(g), v) for g, v in gradients ]
+
+def get_run():
+    try:
+        with open("run.txt") as f:
+            run = int(f.read().split("/n")[0])
+    except:
+        run = -1
+
+    with open("run.txt", 'w+') as f:
+        run += 1
+
+        f.seek(0)
+        f.write(str(run))
+        f.truncate()
+
+    return run

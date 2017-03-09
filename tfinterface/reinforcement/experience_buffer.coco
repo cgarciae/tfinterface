@@ -1,0 +1,65 @@
+from tfinterface.interfaces import ExperienceBufferInterface
+from operator import itemgetter
+
+
+class EmptyBuffer(ExperienceBufferInterface):
+
+    def __init__(self):
+        self.buf = None
+
+    def reset(self): pass
+
+    def append(self, experience):
+        if self.buf is None:
+            self.buf = [ [] for _ in range(len(experience)) ]
+
+    def random_batch(self, batch_size) = []
+
+    def unzip(self) = self.buf
+
+    def __iter__(self) = iter([])
+
+    def __len__(self) = 0
+
+    def __getitem__(self, *args, **kwargs) = ([]).__getitem__(*args, **kwargs)
+
+
+class ListEpisodeBuffer(ExperienceBufferInterface):
+
+    def __init__(self, lst=None):
+        self.list = lst if lst is not None else []
+
+    def reset(self):
+        del self.list[:]
+
+    def append(self, experience):
+        self.list.append(experience)
+
+    def random_batch(self, batch_size):
+        idx = self.get_random_idx(batch_size)
+        batch = [ self.list[i] for i in idx ]
+        return self.__class__(lst=batch)
+
+    def unzip(self):
+        return [ list(e) for e in zip(*self.list) ]
+
+    def __iter__(self) = iter(self.list)
+
+    def __len__(self) = len(self.list)
+
+    def __getitem__(self, *args, **kwargs) = self.list.__getitem__(*args, **kwargs)
+
+class ExperienceReplay(ListEpisodeBuffer):
+
+    def __init__(self, *args, **kwargs):
+        self.max_length = kwargs.pop('max_length', 100000)
+        super(ExperienceReplay, self).__init__(*args, **kwargs)
+
+    def reset(self): pass
+
+    def append(self, experience):
+        self.list.append(experience)
+
+        if len(self.list) > self.max_length:
+            self.list.pop(0)
+
