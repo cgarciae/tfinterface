@@ -155,7 +155,7 @@ class DeepActorCritic(ModelBase):
 
     def fit_feed(self, *args, **kwargs): return self.inputs.fit_feed(*args, **kwargs)
 
-    def choose_action(self, state, keep_prob, e=0.0):
+    def next_action(self, state, keep_prob, e=0.0):
         actions = self.sess.run(self.actor.P, feed_dict={
             self.inputs.s: [state],
             self.inputs.keep_prob: keep_prob
@@ -188,7 +188,7 @@ class DeepActorCritic(ModelBase):
 
                 _learning_rate = learning_rate(self.global_step) if hasattr(learning_rate, '__call__') else learning_rate
 
-                a = self.choose_action(s, keep_prob)
+                a = self.next_action(s, keep_prob)
                 s1, r, done, info = env.step(a)
                 r_total += r
                 ep_reward += r
@@ -217,11 +217,9 @@ class DeepActorCritic(ModelBase):
 
 
             if ep_reward >= self.global_max:
-                print("[MAX] Episode: {}, Length: {}, Reward: {}, buffer_len: {}".format(episode, episode_length, len(self.replay_buffer)))
+                print("[MAX] Episode: {}, Length: {}, Reward: {}, buffer_len: {}".format(episode, episode_length, ep_reward, len(self.replay_buffer)))
                 self.save(model_path = self.model_path + ".max")
                 self.global_max = episode_length
-
-
 
 
             if episode % print_step == 0 and episode > 0:
