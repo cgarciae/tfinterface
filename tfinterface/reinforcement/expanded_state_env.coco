@@ -5,20 +5,20 @@ import gym
 
 class ExpandedStateEnv(EnvironmentInterface):
 
-    def __init__(self, env, expansion):
-        print(isinstance(env, six.string_types))
+    def __init__(self, env, expansion, horizontal=True):
         self.env = gym.make(env) if isinstance(env, six.string_types) else env
         self.expansion = expansion
+        self.horizontal = horizontal
 
     def reset(self):
         s = self.env.reset()
-        self.s = np.hstack( (s,) * self.expansion )
+        self.s = np.hstack( (s,) * self.expansion ) if self.horizontal else np.vstack( (s,) * self.expansion )
         return self.s
 
     def step(self, a):
         s, r, done, info = self.env.step(a)
         n = len(s)
-        self.s = np.hstack((self.s[n:], s))
+        self.s = np.hstack((self.s[n:], s)) if self.horizontal else np.vstack((self.s[1:, :], s))
 
         return self.s, r, done, info
 

@@ -1,4 +1,6 @@
 import tensorflow as tf
+import os
+
 
 class Required(object): pass
 class RequiredTensor(Required): pass
@@ -42,3 +44,16 @@ def get_run():
         f.truncate()
 
     return run
+
+
+def make_folders_for_path(path):
+    dirs = path.split("/")
+
+    if len(dirs) == 1:
+        return
+
+    dir = "/".join(dirs[:-1])
+
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
