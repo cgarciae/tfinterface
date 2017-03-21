@@ -24,7 +24,7 @@ def soft_if(cond, then, else_):
     return (cond * then) + (1.0 - cond) * else_
 
 
-def map_gradients(gradients, f):
+def map_gradients(f, gradients):
     return [ (f(g), v) for g, v in gradients ]
 
 def get_run():

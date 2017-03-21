@@ -1,0 +1,25 @@
+import numpy as np
+import tensorflow as tf
+from tfinterface.reinforcement import ExperienceReplay
+
+
+class TestSupervised(object):
+
+    def test_replay(self):
+
+        xp = ExperienceReplay(3)
+
+        xp.append(1, 2, 3)
+        xp.append(4, 5, 6)
+
+        a, b, c = xp.unzip()
+
+        assert a == [1, 4]
+        assert b == [2, 5]
+        assert c == [3, 6]
+
+        ar, br, cr = xp.random_batch(1).unzip()
+
+        assert 1 in ar or 4 in ar
+        assert 2 in br or 5 in br
+        assert 3 in cr or 6 in cr

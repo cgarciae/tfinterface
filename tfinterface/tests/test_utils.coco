@@ -1,0 +1,45 @@
+import numpy as np
+import tensorflow as tf
+from tfinterface.utils import soft_if, select_columns
+
+
+class TestSupervised(object):
+
+    def test_soft_if(self):
+        graph = tf.Graph()
+        with tf.Session(graph=graph) as sess:
+
+            x = tf.placeholder(tf.float32, [None])
+            y = tf.placeholder(tf.float32, [None])
+            b = tf.placeholder(tf.float32, [None])
+            f = soft_if(b, x, y)
+
+            X = [1., 2., 3.]
+            Y = [4., 5., 6.]
+            B = [1., 0., 1.]
+
+            F = sess.run(f, {
+                x: X, y: Y, b: B
+            })
+
+            assert (F == [1., 5., 3.]).all()
+
+
+    def test_select_colums(self):
+        graph = tf.Graph()
+        with tf.Session(graph=graph) as sess:
+            x = tf.placeholder(tf.float32, [None, 2])
+            idx = tf.placeholder(tf.int32, [None])
+            y = select_columns(x, idx)
+
+            X = [
+                [1., 2.],
+                [3., 4.],
+                [5., 6.],
+            ]
+
+            IDX = [0, 1, 0]
+
+            Y = sess.run(y, {x: X, idx: IDX})
+
+            assert (Y == [1., 4., 5.]).all()
