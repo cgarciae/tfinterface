@@ -42,3 +42,16 @@ def get_run():
         f.truncate()
 
     return run
+
+def shifted_log_loss(x, alfa=0.05):
+    return - tf.log(x + alfa * (1.0 - x))
+
+def huber_loss(x, d=1.0):
+    """
+See: https://en.wikipedia.org/wiki/Huber_loss
+    """
+    return tf.where(
+        tf.abs(x) <= d,
+        0.5 * tf.square(x),
+        d * ( tf.abs(x) - 0.5 * d )
+    )

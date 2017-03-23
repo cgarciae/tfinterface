@@ -14,5 +14,3 @@ from .expanded_state_env import (
 from .dnq import (
     DQN
 )
-
-from .deep_actor_critic import DeepActorCritic

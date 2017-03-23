@@ -1,7 +1,8 @@
 from tfinterface.model_base import ModelBase
-from tfinterface.utils import select_columns, soft_if
+from tfinterface.utils import select_columns, soft_if, huber_loss
 from .experience_buffer import ExperienceReplay
 from rl.policy import EpsGreedyQPolicy, GreedyQPolicy
+from rl.agents import DQNAgent
 
 import numpy as np
 from numpy.random import choice
@@ -13,7 +14,7 @@ class DQN(ModelBase):
 
     def define_model(self, model_fn, nb_actions, memory, policy=None, test_policy=None, enable_double_dqn=True, enable_dueling_network=False,
         dueling_type='avg', gamma=.99, batch_size=32, nb_steps_warmup=1000,
-        train_interval=1, memory_interval=1, target_model_update=10000,
+        train_interval=1, memory_interval=1, target_update=10000,
         delta_range=None, delta_clip=np.inf, scope="dqn", optimizer=tf.train.AdamOptimizer):
 
         self.memory = memory
@@ -23,7 +24,7 @@ class DQN(ModelBase):
         self.nb_steps_warmup = nb_steps_warmup
         self.train_interval = train_interval
         self.memory_interval = memory_interval
-        self.target_model_update = target_model_update
+        self.target_update = target_update
         self.delta_range = delta_range
         self.delta_clip = delta_clip
 
@@ -36,16 +37,55 @@ class DQN(ModelBase):
 
             with tf.variable_scope(scope):
 
-                self.model_target = self.inputs.r + tf.reduce_max(self.target_model.Qs, axis=1) * self.inputs.done
-                self.mode_error = self.model_target - self.model.Qsa
-                self.model_loss = self.mode_error |> tf.nn.l2_loss |> tf.reduce_mean
-                self.model_update = optimizer(self.inputs.learning_rate).minimize(self.model_loss, var_list=self.model.variables)
+                self.target_model_target = tf.where(
+                    self.inputs.done,
+                    self.inputs.r,
+                    self.inputs.r + tf.reduce_max(self.target_model.Qs, axis=1)
+                )
+                self.model_Qsa = select_columns(self.model.Qs, self.inputs.a)
+                self.model_error = self.target_model_target - self.model_Qsa
+                self.model_loss = self.model_error |> huber_loss |> tf.reduce_mean
+                self.update = optimizer(self.inputs.learning_rate).minimize(self.model_loss, var_list=self.model.variables)
 
-                if target_model_update < 1:
-                    self.update_target = tf.group(*[
-                        tv.assign_add( target_model_update * (mv - tv) ) for mv, tm in zip(self.target_model.variables, self.model.variables)
+                if target_update < 1:
+                    self.update = tf.group(self.update, *[
+                        tv.assign_add( target_update * (mv - tv) ) for mv, tm in zip(self.target_model.variables, self.model.variables)
                     ])
+                    self.update_target_hard = None
                 else:
-                    self.update_target = tf.group(*[
+                    self.update_target_hard = tf.group(*[
                         tv.assign( mv ) for mv, tm in zip(self.target_model.variables, self.model.variables)
                     ])
+
+        def predict_feed(self, S):
+            return {
+                self.inputs.s: S,
+                self.inputs.keep_prob: 1.0,
+                self.inputs.training: False
+            }
+
+        def predict(self, S):
+            Qs = self.sess.run(self.model.Qs, feed_dict=self.predict_feed(S))
+            return self.policy.select_action(q_values=Qs)
+
+        def fit(self, env, nb_steps=1000000, keep_prob=0.5):
+
+            s = env.reset()
+
+            while self.global_step < nb_steps:
+                self.global_step += 1
+
+                a = self.predict([s])
+                s1, r, done, info = env.step(a)
+
+                if self.global_step % self.memory_interval == 0:
+                    self.memory.append(s, a, r, done)
+
+                if self.global_step > self.nb_steps_warmup and self.global_step % self.train_interval == 0:
+                    S, A, R, Done = self.memory.random_batch(self.batch_size).unzip()
+
+                    train_feed = self.train_feed(S, A, R, Done, keep_prob=keep_prob)
+                    _ = self.sess.run(self.update, feed_dict=train_feed)
+
+                if self.update_target_hard and self.global_step % self.target_model_update == 0:
+                    self.sess.run(self.update_target_hard)
