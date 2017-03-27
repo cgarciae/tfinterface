@@ -10,12 +10,15 @@ import random
 import tensorflow as tf
 from scipy.interpolate import interp1d
 
+class DQNInputs(object):
+
+
 class DQN(ModelBase):
 
     def define_model(self, model_fn, nb_actions, memory, policy=None, test_policy=None, enable_double_dqn=True, enable_dueling_network=False,
         dueling_type='avg', gamma=.99, batch_size=32, nb_steps_warmup=1000,
         train_interval=1, memory_interval=1, target_update=10000,
-        delta_range=None, delta_clip=np.inf, scope="dqn", optimizer=tf.train.AdamOptimizer):
+        delta_range=None, delta_clip=np.inf, scope="dqn", optimizer=tf.train.AdamOptimizer, inputs=None):
 
         self.memory = memory
         self.policy = policy if policy else EpsGreedyQPolicy()
@@ -30,7 +33,7 @@ class DQN(ModelBase):
 
 
         with self.graph.as_default():
-            self.inputs = self.get_inputs()
+            self.inputs = self.get_inputs() if inputs is None else inputs
 
             self.model = model_fn(self.inputs)
             self.target_model = model_fn(self.inputs)
@@ -57,6 +60,9 @@ class DQN(ModelBase):
                         tv.assign( mv ) for mv, tm in zip(self.target_model.variables, self.model.variables)
                     ])
 
+        def get_inputs(self):
+            retur
+
         def predict_feed(self, S):
             return {
                 self.inputs.s: S,
@@ -67,6 +73,16 @@ class DQN(ModelBase):
         def predict(self, S):
             Qs = self.sess.run(self.model.Qs, feed_dict=self.predict_feed(S))
             return self.policy.select_action(q_values=Qs)
+
+        def train_feed(self, S, A, R, Done, keep_prob=keep_prob):
+            return {
+                self.inputs.s: S,
+                self.inputs.a: A,
+                self.inputs.r: R,
+                self.inputs.done: Done,
+                self.inputs.keep_prob: keep_prob,
+                self.inputs.training: True
+            }
 
         def fit(self, env, nb_steps=1000000, keep_prob=0.5):
 
@@ -89,3 +105,5 @@ class DQN(ModelBase):
 
                 if self.update_target_hard and self.global_step % self.target_model_update == 0:
                     self.sess.run(self.update_target_hard)
+
+                s = s1
