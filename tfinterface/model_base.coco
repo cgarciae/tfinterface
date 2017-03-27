@@ -9,7 +9,7 @@ class ModelBase(BaseInterface):
     __metaclass__ = ABCMeta
 
     def __init__(self, *args, **kwargs):
-        self.global_step = -1
+
 
         initialize_variables = kwargs.pop("initialize_variables", True)
         restore = kwargs.pop("restore", False)
@@ -17,6 +17,9 @@ class ModelBase(BaseInterface):
         self.logs_path = kwargs.pop("logs_path", "logs")
         flush_secs = kwargs.pop("flush_secs", 10.0)
         self.graph = kwargs.pop("graph", tf.Graph())
+
+        with self.graph.as_default():
+            self.global_step = tf.Variable(0, trainable=False)
 
         self.sess = tf.Session(graph=self.graph)
         self.define_model(*args, **kwargs)

@@ -12,7 +12,19 @@ import tensorflow as tf
 from scipy.interpolate import interp1d
 
 
-## TODO: figure out how to handle changes in policy rate 
+class DQNEpsPolicy(object):
+    def __init__(self, inputs, Qs, nb_actions, eps=1.0, decay_steps=5000,):
+        with tf.variable_scope("dqn_policy"):
+            batch_size = tf.shape(inputs.s)[0]
+            random_eps = tf.random_uniform([batch_size], minval=0, maxval=1, dtype=tf.float32, name="random_eps")
+            self.e = tf.train.exponential_decay(eps, inputs.global_step, decay_steps, name="e")
+            self.random_action = tf.random_uniform([batch_size], minval=0, maxval=nb_actions, dtype=tf.int32, name="random_action")
+            self.greedy_action = tf.a
+            self.action = tf.where(
+                random_eps < e,
+                self.random_action,
+
+            )
 
 class DQNInputs(object):
 
@@ -26,7 +38,8 @@ class DQNInputs(object):
 
             self.keep_prob = tf.placeholder(tf.float32, shape=[], name="keep_prob")
             self.training = tf.placeholder(tf.bool, shape=[], name="training")
-            self.learning_rate = tf.placeholder(tf.float32, shape=[], name="learning_rate")
+
+            self.global_step = tf.Variable(0, trainable=False, name="global_step")
 
 
     def predict_feed(self, S):
@@ -54,7 +67,7 @@ class DQN(ModelBase):
     def define_model(self, model_fn, nb_states, memory=None, policy=None, test_policy=None, enable_double_dqn=True, enable_dueling_network=False,
         dueling_type='avg', gamma=0.99, batch_size=32, nb_steps_warmup=1000,
         train_interval=1, memory_interval=1, target_update=10000,
-        delta_range=None, delta_clip=np.inf, scope="dqn", model_scope="model", target_model_scope="target_model", optimizer=tf.train.AdamOptimizer, inputs=None, inputs_class=DQNInputs, memory_max_length=100000):
+        delta_range=None, delta_clip=np.inf, scope="dqn", model_scope="model", target_model_scope="target_model", optimizer=tf.train.AdamOptimizer, inputs=None, inputs_class=DQNInputs, memory_max_length=100000, learning_rate=0.001):
 
         self.memory = memory if memory else ExperienceReplay(4, max_length=memory_max_length)
         self.policy = policy if policy else EpsGreedyQPolicy()
@@ -90,7 +103,12 @@ class DQN(ModelBase):
                 self.model_Qsa = select_columns(self.model.Qs, self.inputs.a) if not hasattr(self.model, "Qsa") else self.model.Qsa
                 self.model_error = self.target_model_target - self.model_Qsa if not hasattr(self.model, "error") else self.model.error
                 self.model_loss = self.model_error |> huber_loss |> tf.reduce_mean if not hasattr(self.model, "loss") else self.model.loss
-                self.update = optimizer(self.inputs.learning_rate).minimize(self.model_loss, var_list=self.model_variables) if not hasattr(self.model, "update") else self.model.update
+                self.model_learning_rate = self.model.learning_rate if hasattr(self.model, 'learning_rate') else learning_rate
+                self.update = optimizer(self.model_learning_rate).minimize(
+                    self.model_loss,
+                    var_list=self.model_variables,
+                    global_step=self.inputs.global_step
+                ) if not hasattr(self.model, "update") else self.model.update
 
                 if self.target_update < 1:
                     self.update = tf.group(self.update, *[
@@ -108,28 +126,26 @@ class DQN(ModelBase):
         policy = self.policy if training else self.test_policy
         return policy.select_action(q_values=Qs)
 
-    def fit(self, env, nb_steps=1000000, keep_prob=0.5, learning_rate=0.001, e=0.1):
+    def fit(self, env, nb_steps=1000000, keep_prob=0.5, learning_rate=0.001, e=0.1, step=0):
 
         s = env.reset()
 
-        while self.global_step < nb_steps:
-            self.global_step += 1
-            _learning_rate = learning_rate if not hasattr(learning_rate, '__call__') else learning_rate(self.global_step)
-            _e = e if not hasattr(e, '__call__') else e(self.global_step)
+        while step < nb_steps:
+            step += 1
 
             a = self.predict([s], training=True)
             s1, r, done, info = env.step(a)
 
-            if self.global_step % self.memory_interval == 0:
+            if step % self.memory_interval == 0:
                 self.memory.append(s, a, r, done)
 
-            if self.global_step > self.nb_steps_warmup and self.global_step % self.train_interval == 0:
+            if step > self.nb_steps_warmup and step % self.train_interval == 0:
                 S, A, R, Done = self.memory.random_batch(self.batch_size).unzip()
 
-                train_feed = self.inputs.train_feed(S, A, R, Done, keep_prob=keep_prob, learning_rate=_learning_rate)
+                train_feed = self.inputs.train_feed(S, A, R, Done, keep_prob=keep_prob)
                 _ = self.sess.run(self.update, feed_dict=train_feed)
 
-            if self.update_target_hard and self.global_step % self.target_model_update == 0:
+            if self.update_target_hard and step % self.target_model_update == 0:
                 self.sess.run(self.update_target_hard)
 
             s = s1
