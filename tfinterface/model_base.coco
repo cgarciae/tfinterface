@@ -13,21 +13,21 @@ class ModelBase(BaseInterface):
 
         initialize_variables = kwargs.pop("initialize_variables", True)
         restore = kwargs.pop("restore", False)
+        self.seed = kwargs.pop("seed", None)
         self.model_path = kwargs.pop("model_path", "model")
         self.logs_path = kwargs.pop("logs_path", "logs")
         flush_secs = kwargs.pop("flush_secs", 10.0)
         self.graph = kwargs.pop("graph", tf.Graph())
+        self.sess = tf.Session(graph=self.graph)
 
         with self.graph.as_default():
+            if self.seed is not None:
+                tf.set_random_seed(self.seed)
+            
             self.global_step = tf.Variable(0, trainable=False)
 
-        self.sess = tf.Session(graph=self.graph)
-        self.define_model(*args, **kwargs)
+            self.define_model(*args, **kwargs)
 
-        if not hasattr(self, 'global_step'):
-            self.global_step = 0
-
-        with self.graph.as_default():
             self.set_summaries()
             self.writer = tf.summary.FileWriter(self.logs_path, graph=self.graph, flush_secs=flush_secs)
             self.saver = tf.train.Saver(allow_empty=True)

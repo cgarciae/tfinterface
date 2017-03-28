@@ -7,7 +7,7 @@ import numpy as np
 import gym
 from gym import wrappers
 from tfinterface.utils import get_run
-from tfinterface.reinforcement import DQN
+from tfinterface.reinforcement import DQN, ExpandedStateEnv
 import random
 import tensorflow as tf
 
@@ -17,7 +17,8 @@ run = get_run()
 
 #env
 env = gym.make(ENV_NAME)
-env = wrappers.Monitor(env, "monitor/{run}".format(run = run))
+env = wrappers.Monitor(env, "monitor/{run}".format(run = run), video_callable=lambda step: step % 50 == 0)
+env = ExpandedStateEnv(env, 3)
 
 # To get repeatable results.
 sd = 16
@@ -46,7 +47,16 @@ class Network(object):
         self.Qs = tf.layers.dense(net, nb_actions)
 
 
-dqn = DQN(
-    lambda inputs: Network(inputs, nb_actions),
-    nb_states
-)
+with tf.device("cpu:0"):
+    dqn = DQN(
+        lambda inputs: Network(inputs, nb_actions),
+        nb_states,
+        seed = sd,
+        eps = 0.1,
+        target_update = 0.001
+    )
+
+
+dqn.fit(env)
+
+tf.train.exponential_decay
