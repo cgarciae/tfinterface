@@ -17,7 +17,7 @@
 #
 #         class LinearRegression(SupervisedModel):
 #
-#             def define_model(self, learning_rate=0.01):
+#             def _build(self, learning_rate=0.01):
 #                 with self.graph.as_default():
 #                     self.x = tf.placeholder(tf.float32, [None, 1])
 #                     self.y = tf.placeholder(tf.float32, [None, 1])

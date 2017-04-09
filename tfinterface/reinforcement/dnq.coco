@@ -71,7 +71,7 @@ class DQNInputs(object):
 
 class DQN(ModelBase):
 
-    def define_model(self, model_fn, nb_states, memory=None, policy=None, test_policy=None, enable_double_dqn=True, enable_dueling_network=False,
+    def _build(self, model_fn, nb_states, memory=None, policy=None, test_policy=None, enable_double_dqn=True, enable_dueling_network=False,
         dueling_type='avg', gamma=0.99, inputs_batch_size=None, nb_steps_warmup=1000,
         train_interval=1, memory_interval=1, target_update=10000,
         delta_range=None, delta_clip=np.inf, scope="dqn", model_scope="model", target_model_scope="target_model", optimizer=tf.train.AdamOptimizer,

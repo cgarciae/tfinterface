@@ -9,7 +9,7 @@
 #
 #     def test_base(self):
 #         class SomeModel(ModelBase):
-#             def define_model(self, y, z = 1):
+#             def _build(self, y, z = 1):
 #                 self.y = y
 #                 self.z = z
 #
@@ -36,7 +36,7 @@
 #
 #         class SomeSupervisedModel(SupervisedModel):
 #
-#             def define_model(*args, **kwargs):
+#             def _build(*args, **kwargs):
 #                 self.x = 1
 #                 self.y = 2
 #                 self.loss = 3

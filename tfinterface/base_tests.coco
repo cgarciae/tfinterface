@@ -1,0 +1,57 @@
+from tfinterface.base import Model, Inputs
+import tensorflow as tf
+import numpy as np
+
+
+class TestBase(object):
+
+    def test_build(self):
+        class VariableInputs(Inputs):
+
+            def _build(self, n_features, n_labels):
+                self.n_features = n_features
+                self.n_labels = n_labels
+
+                self.features = tf.placeholder(tf.float32, [None, self.n_features])
+                self.labels = tf.placeholder(tf.float32, [None, self.n_labels])
+
+            def fit_feed(self): return {}
+            def predict_feed(self): return {}
+
+        class ConstantInputs(Inputs):
+
+            def _build(self, n_features, n_labels):
+                self.n_features = n_features
+                self.n_labels = n_labels
+
+                self.features = tf.constant(np.random.normal(loc=0.0, scale=1.0, size=(5, n_features)), dtype=tf.float32)
+                self.labels = tf.constant(np.random.normal(loc=0.0, scale=1.0, size=(5, n_labels)), dtype=tf.float32)
+
+            def fit_feed(self): return {}
+            def predict_feed(self): return {}
+
+        class TestModel(Model):
+            """docstring for TestModel."""
+            def _build(self, inputs):
+                units = inputs.labels.get_shape()[1].value
+                self.predictions = tf.layers.dense(inputs.features, units)
+
+
+        constant_inputs = ConstantInputs("constant_inputs")(10, 1)
+        variable_inputs = VariableInputs("variable_inputs")(10, 1)
+
+        model_template = TestModel("test_model")
+
+        model1 = model_template(constant_inputs)
+        model2 = model_template(variable_inputs)
+
+        assert model1.predictions.get_shape()[0].value is 5
+        assert model1.predictions.get_shape()[1].value is 1
+        assert model2.predictions.get_shape()[0].value is None
+        assert model2.predictions.get_shape()[1].value is 1
+
+
+        vars1 = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=model1.template._name)
+        vars2 = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=model2.template._name)
+
+        assert vars1 == vars2

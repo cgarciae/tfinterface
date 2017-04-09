@@ -1,0 +1,49 @@
+from abc import abstractmethod
+import random
+import tensorflow as tf
+import cytoolz as cz
+
+from tfinterface.base import Trainer
+
+
+class SupervisedTrainer(Trainer):
+
+    def _build(self, model, loss="MSE", optimizer=tf.train.AdamOptimizer, learning_rate=0.001):
+        self.model = model
+        inputs = model.inputs
+
+        if hasattr(self.model, "loss"):
+            self.loss = self.model.loss
+        else:
+            if loss == "MSE":
+                self.loss = tf.nn.l2_loss(model.predictions, inputs.labels) |> tf.reduce_mean
+            elif loss == "sigmoid":
+                self.loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=model.logits, labels=inputs.labels)
+            elif loss == "softmax":
+                self.loss = tf.nn.softmax_cross_entropy_with_logits(logits=model.logits, labels=inputs.labels)
+
+        if hasattr(self.model, "update"):
+            self.update = self.model.update
+        else:
+            self.update = optimizer(learning_rate).minimize(self.loss)
+
+
+
+
+    def fit(self, epochs=2000, data_generator=None, log_summaries=False, writer_kwargs={}):
+
+        with self.graph.as_default():
+            if log_summaries and not hasattr(self, "writer"):
+                self.writer = tf.summary.FileWriter(self.logs_path, graph=self.graph, **writer_kwargs)
+
+            if not hasattr(self, "summaries"):
+                self.summaries = tf.no_op()
+
+        data_generator = data_generator if data_generator else ( () for _ in range(epochs) ) |> cz.take$(epochs)
+
+        for i, batch in enumerate(data_generator):
+            fit_feed = self.model.inputs.fit_feed(*batch)
+            _, summaries = self.sess.run([self.update, self.summaries], feed_dict=fit_feed)
+
+            if log_summaries and summaries is not None:
+                self.writer.add_summary(summaries, global_step=global_step)

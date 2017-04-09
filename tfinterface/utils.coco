@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 class Required(object): pass
 class RequiredTensor(Required): pass
@@ -14,6 +15,14 @@ ENV = RequiredEnvironment()
 EXPERIENCEBUFFER = RequiredExperienceBuffer()
 TRAINER = RequiredTrainer()
 
+
+def random_batch_generator(*datas, **kwargs):
+    batch_size = kwargs.get("batch_size", 32)
+    n = len(datas[0])
+
+    while True:
+        idx = np.random.random_integers(0, high=n-1, size=(batch_size,))
+        yield tuple([ data[idx] for data in datas ])
 
 def select_columns(tensor, indexes):
     idx = tf.stack((tf.range(tf.shape(indexes)[0]), indexes), 1)
