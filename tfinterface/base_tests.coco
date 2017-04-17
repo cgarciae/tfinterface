@@ -1,4 +1,4 @@
-from tfinterface.base import Model, Inputs
+from tfinterface.base import ModelBase, Inputs
 import tensorflow as tf
 import numpy as np
 
@@ -30,7 +30,7 @@ class TestBase(object):
             def fit_feed(self): return {}
             def predict_feed(self): return {}
 
-        class TestModel(Model):
+        class TestModel(ModelBase):
             """docstring for TestModel."""
             def _build(self, inputs):
                 units = inputs.labels.get_shape()[1].value

@@ -1,0 +1,18 @@
+from tfinterface.base import Model, RequiredModel
+from tfinterface.utils import TENSOR, Required
+
+class RequiredSupervisedModel(RequiredModel): pass
+SUPERVISED_MODEL = RequiredSupervisedModel()
+
+class SupervisedModel(Model):
+    """
+# Inteface
+* `inputs : SupervisedInputs` -
+* `predictions : Tensor` -
+* `[loss : Tensor]` -
+* `[update : Tensor]` -
+    """
+
+    def predict(self, features):
+        predict_feed = self.inputs.predict_feed(features)
+        return self.sess.run(self.predictions, feed_dict=predict_feed)

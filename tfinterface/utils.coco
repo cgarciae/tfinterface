@@ -4,13 +4,12 @@ import numpy as np
 class Required(object): pass
 class RequiredTensor(Required): pass
 class RequiredEnvironment(Required): pass
-class RequiredModel(Required): pass
+
 class RequiredExperienceBuffer(Required): pass
 class RequiredTrainer(Required): pass
 
 REQUIRED = Required()
 TENSOR = RequiredTensor()
-MODEL = RequiredModel()
 ENV = RequiredEnvironment()
 EXPERIENCEBUFFER = RequiredExperienceBuffer()
 TRAINER = RequiredTrainer()

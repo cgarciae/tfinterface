@@ -1,0 +1,113 @@
+from tfinterface.utils import TENSOR
+from tfinterface.base import Inputs, RequiredInputs
+import tensorflow as tf
+
+class RequiredSupervisedInputs(RequiredInputs): pass
+SUPERVISED_INPUTS = RequiredSupervisedInputs()
+
+class SupervisedInputs(Inputs):
+    """
+# Inteface
+* `features : Tensor` -
+* `labels : Tensor` -
+* `keep_prob : Tensor` -
+* `training : Tensor` -
+* `global_step : Variable` -
+    """
+
+    def _build(self, training_keep_prob=0.5):
+        self._training_keep_prob = training_keep_prob
+
+        # common inputs
+        self.keep_prob = tf.placeholder(tf.float32, shape=[], name="keep_prob")
+        self.training = tf.placeholder(tf.bool, shape=[], name="training")
+
+        self.global_step = tf.train.get_global_step()
+
+        if not self.global_step:
+            self.global_step = tf.get_variable("global_step", initializer=0, trainable=False)
+            tf.add_to_collection(tf.GraphKeys.GLOBAL_STEP, self.global_step)
+
+
+    def _fit_feed(self):
+        return {
+            self.keep_prob: self._training_keep_prob,
+            self.training: True
+        }
+
+
+    def _predict_feed(self):
+        return {
+            self.keep_prob: 1.0,
+            self.training: False
+        }
+
+class SupervisedPlaceholderInputs(SupervisedInputs):
+
+    def _build(self, shape_features, shape_labels, dtype_features=tf.float32, dtype_labels=tf.float32, **kwargs):
+        super(self.__class__, self)._build(**kwargs)
+
+        if type(shape_features) is int:
+            shape_features = [None, shape_features]
+
+        if type(shape_labels) is int:
+            shape_labels = [None, shape_labels]
+
+        self.features = tf.placeholder(dtype_features, shape=shape_features, name="features")
+        self.labels = tf.placeholder(dtype_features, shape=shape_features, name="labels")
+
+
+    def fit_feed(self, features, labels):
+        feed = super(self.__class__, self)._fit_feed().copy()
+
+        feed.update({
+            self.features: features,
+            self.labels: labels
+        })
+
+        return feed
+
+
+    def predict_feed(self, features):
+        feed = super(self.__class__, self)._predict_feed().copy()
+
+        feed.update({
+            self.features: features
+        })
+
+        return feed
+
+class SupervisedPlaceholderInputs(SupervisedInputs):
+
+    def _build(self, shape_features, shape_labels, dtype_features=tf.float32, dtype_labels=tf.float32, **kwargs):
+        super(self.__class__, self)._build(**kwargs)
+
+        if type(shape_features) is int:
+            shape_features = [None, shape_features]
+
+        if type(shape_labels) is int:
+            shape_labels = [None, shape_labels]
+
+        self.features = tf.placeholder(dtype_features, shape=shape_features, name="features")
+        self.labels = tf.placeholder(dtype_features, shape=shape_features, name="labels")
+
+
+    def fit_feed(self, features, labels):
+        feed = super(self.__class__, self)._fit_feed().copy()
+
+        feed.update({
+            self.features: features,
+            self.labels: labels
+        })
+
+        return feed
+
+
+    def predict_feed(self, features):
+        feed = super(self.__class__, self)._predict_feed().copy()
+
+        feed.update({
+            self.features: features
+        })
+
+        return feed

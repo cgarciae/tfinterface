@@ -7,7 +7,12 @@ from tfinterface.base import Trainer
 
 
 class SupervisedTrainer(Trainer):
-
+    """
+# Inteface
+* `model : SupervisedModel` -
+* `loss : Tensor` - 
+* `update : Tensor` -
+    """
     def _build(self, model, loss="MSE", optimizer=tf.train.AdamOptimizer, learning_rate=0.001):
         self.model = model
         inputs = model.inputs
