@@ -1,6 +1,7 @@
 import tensorflow as tf
 from copy import copy
 from .utils import TENSOR, Required
+import numpy as np
 
 from abc import ABCMeta, abstractmethod
 
@@ -17,7 +18,7 @@ class Base(object):
     @abstractmethod
     def _build(self, *args, **kwargs): pass
 
-    def __init__(self, name, graph=None, sess=sess):
+    def __init__(self, name, graph=None, sess=None):
         self.name = name
         self.template = tf.make_template(self.name, self.__class__._build)
         self.graph = graph if graph else tf.get_default_graph()
@@ -39,6 +40,56 @@ class Inputs(Base):
 
     @abstractmethod
     def predict_feed(self, *args, **kwargs): pass
+
+
+class GeneralInputs(Inputs):
+    """docstring for GeneralInputs."""
+    def __init__(self, name, graph=None, sess=None, **input_specs):
+        super(GeneralInputs, self).__init__(name, graph=graph, sess=sess)
+        self._input_specs = input_specs
+
+    def _build(self, **input_overrides):
+        input_specs = self._input_specs.copy()
+        input_specs.update(input_overrides)
+
+        for name, spec in input_specs.items():
+
+            if type(spec) is not dict:
+
+                if type(spec) is tuple:
+                    spec = dict(dtype=tf.float32, shape=spec)
+
+                elif hasattr(spec, "__call__"):
+                    spec = dict(tensor_fn=spec)
+
+                else:
+                    spec = dict(value=spec)
+
+
+            if "shape" in spec:
+                dtype = spec.get("dtype", tf.float32)
+                shape = spec.get("shape")
+                tensor = tf.placeholder(dtype=dtype, shape=shape, name=name)
+
+            elif "value" in spec:
+                value = spec.get("value")
+                dtype = spec.get("dtype", None)
+                tensor = tf.convert_to_tensor(value, dtype=dtype, name=name)
+
+            elif "tensor_fn" in spec:
+                tensor_fn = spec.get("tensor_fn")
+                tensor = tensor_fn()
+
+
+            setattr(self, name, tensor)
+
+
+    def get_feed(self, **kwargs):
+        return ({
+            getattr(self, key) : value for key, value in kwargs.items()
+        })
+
+
 
 class ModelBase(Base):
     __metaclass__ = ABCMeta

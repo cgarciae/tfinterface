@@ -63,3 +63,13 @@ See: https://en.wikipedia.org/wiki/Huber_loss
         0.5 * tf.square(x),
         d * ( tf.abs(x) - 0.5 * d )
     )
+
+
+def get_global_step():
+    global_step = tf.train.get_global_step()
+
+    if not global_step:
+        global_step = tf.get_variable("global_step", initializer=0, trainable=False)
+        tf.add_to_collection(tf.GraphKeys.GLOBAL_STEP, global_step)
+
+    return global_step

@@ -1,11 +1,11 @@
-from tfinterface.utils import TENSOR
-from tfinterface.base import Inputs, RequiredInputs
+from tfinterface.utils import TENSOR, get_global_step
+from tfinterface.base import Inputs, RequiredInputs, GeneralInputs
 import tensorflow as tf
 
 class RequiredSupervisedInputs(RequiredInputs): pass
 SUPERVISED_INPUTS = RequiredSupervisedInputs()
 
-class SupervisedInputs(Inputs):
+class SupervisedInputs(GeneralInputs):
     """
 # Inteface
 * `features : Tensor` -
@@ -15,32 +15,37 @@ class SupervisedInputs(Inputs):
 * `global_step : Variable` -
     """
 
-    def _build(self, training_keep_prob=0.5):
-        self._training_keep_prob = training_keep_prob
+    def __init__(self, name, features, labels, dropout_keep_prob=0.5, **kwargs):
+        self._dropout_keep_prob = dropout_keep_prob
 
-        # common inputs
-        self.keep_prob = tf.placeholder(tf.float32, shape=[], name="keep_prob")
-        self.training = tf.placeholder(tf.bool, shape=[], name="training")
+        training_specs = dict(shape=(), dtype=tf.bool)
+        keep_prob_specs = dict(shape=(), dtype=tf.float32)
 
-        self.global_step = tf.train.get_global_step()
+        super(SupervisedInputs, self).__init__(
+            name,
+            features = features,
+            labels = labels,
+            keep_prob = keep_prob_specs,
+            training = training_specs,
+            global_step = get_global_step
+        )
 
-        if not self.global_step:
-            self.global_step = tf.get_variable("global_step", initializer=0, trainable=False)
-            tf.add_to_collection(tf.GraphKeys.GLOBAL_STEP, self.global_step)
+    def fit_feed(self, keep_prob=None, **kwargs):
+        keep_prob = keep_prob if keep_prob is not None else self._dropout_keep_prob
+
+        return self.get_feed(
+            keep_prob = keep_prob,
+            training = True,
+            **kwargs
+        )
 
 
-    def _fit_feed(self):
-        return {
-            self.keep_prob: self._training_keep_prob,
-            self.training: True
-        }
-
-
-    def _predict_feed(self):
-        return {
-            self.keep_prob: 1.0,
-            self.training: False
-        }
+    def predict_feed(self, **kwargs):
+        return self.get_feed(
+            keep_prob = 1.0,
+            training = False,
+            **kwargs
+        )
 
 class SupervisedPlaceholderInputs(SupervisedInputs):
 
@@ -58,7 +63,7 @@ class SupervisedPlaceholderInputs(SupervisedInputs):
 
 
     def fit_feed(self, features, labels):
-        feed = super(self.__class__, self)._fit_feed().copy()
+        feed = super(SupervisedPlaceholderInputs, self).fit_feed_base().copy()
 
         feed.update({
             self.features: features,
@@ -69,7 +74,7 @@ class SupervisedPlaceholderInputs(SupervisedInputs):
 
 
     def predict_feed(self, features):
-        feed = super(self.__class__, self)._predict_feed().copy()
+        feed = super(SupervisedPlaceholderInputs, self).predict_feed_base().copy()
 
         feed.update({
             self.features: features
@@ -93,7 +98,7 @@ class SupervisedPlaceholderInputs(SupervisedInputs):
 
 
     def fit_feed(self, features, labels):
-        feed = super(self.__class__, self)._fit_feed().copy()
+        feed = super(self.__class__, self).fit_feed_base().copy()
 
         feed.update({
             self.features: features,
@@ -104,7 +109,7 @@ class SupervisedPlaceholderInputs(SupervisedInputs):
 
 
     def predict_feed(self, features):
-        feed = super(self.__class__, self)._predict_feed().copy()
+        feed = super(self.__class__, self).predict_feed_base().copy()
 
         feed.update({
             self.features: features

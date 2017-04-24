@@ -10,7 +10,7 @@ class SupervisedTrainer(Trainer):
     """
 # Inteface
 * `model : SupervisedModel` -
-* `loss : Tensor` - 
+* `loss : Tensor` -
 * `update : Tensor` -
     """
     def _build(self, model, loss="MSE", optimizer=tf.train.AdamOptimizer, learning_rate=0.001):

@@ -1,2 +1,3 @@
 from .supervised_trainer import SupervisedTrainer
 from. supervised_model import SupervisedModel
+from .supervised_inputs import SupervisedInputs
