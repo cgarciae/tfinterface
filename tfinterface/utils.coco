@@ -73,3 +73,33 @@ def get_global_step():
         tf.add_to_collection(tf.GraphKeys.GLOBAL_STEP, global_step)
 
     return global_step
+
+
+
+
+def shuffle_batch_tensor_fns(tensors_dict, **shuffle_batch_kwargs):
+    self = shuffle_batch_tensor_fns
+
+    self.tensors_dict = tensors_dict
+    self.shuffled_tensors = None
+
+    def shuffle_tensors():
+        if self.shuffled_tensors is None:
+            self.tensors_dict = ({key: value for key, value in self.tensors_dict.items() })
+
+            self.shuffled_tensors = tf.train.shuffle_batch(
+                self.tensors_dict,
+                **shuffle_batch_kwargs
+            )
+
+    def get_fn(name):
+        def tensor_fn():
+            shuffle_tensors()
+            return self.shuffled_tensors[name]
+
+        return tensor_fn
+
+    return ({
+        name : get_fn(name)
+        for name in self.tensors_dict
+    })

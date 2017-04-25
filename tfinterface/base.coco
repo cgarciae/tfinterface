@@ -1,6 +1,7 @@
 import tensorflow as tf
 from copy import copy
 from .utils import TENSOR, Required
+from .decorators import return_self, with_graph_as_default, copy_self
 import numpy as np
 
 from abc import ABCMeta, abstractmethod
@@ -24,13 +25,12 @@ class Base(object):
         self.graph = graph if graph else tf.get_default_graph()
         self.sess = sess if sess else tf.get_default_session() if tf.get_default_session() else tf.Session(graph=self.graph)
 
+    @with_graph_as_default
+    @copy_self
+    @return_self
     def __call__(self, *args, **kwargs):
-        new = copy(self)
+        self.template(self, *args, **kwargs)
 
-        with new.graph.as_default():
-            new.template(new, *args, **kwargs)
-
-        return new
 
 class Inputs(Base):
     __metaclass__ = ABCMeta
@@ -97,16 +97,17 @@ class ModelBase(Base):
     def __init__(self, name, graph=None, sess=None, model_path="model", logs_path="logs", seed=None):
         super(ModelBase, self).__init__(name, graph=graph, sess=sess)
 
-        self.seed = seed
-        self.model_path = model_path
-        self.logs_path = logs_path
-        self.saver = tf.train.Saver(allow_empty=True)
+        with self.graph.as_default():
+            self.seed = seed
+            self.model_path = model_path
+            self.logs_path = logs_path
+            self.saver = tf.train.Saver(allow_empty=True)
 
-        if self.seed is not None:
-            with self.graph.as_default():
+            if self.seed is not None:
                 tf.set_random_seed(self.seed)
 
-
+    @return_self
+    @with_graph_as_default
     def initialize(self, restore=False, model_path=None):
         if not restore:
             self.sess.run(tf.global_variables_initializer())
@@ -114,13 +115,11 @@ class ModelBase(Base):
             model_path = self.model_path if not model_path else model_path
             self.saver.restore(self.sess, model_path)
 
-        return self
-
+    @return_self
+    @with_graph_as_default
     def save(self, model_path=None):
         model_path = self.model_path if not model_path else model_path
         self.saver.save(self.sess, model_path)
-
-        return self
 
 class Model(ModelBase):
 

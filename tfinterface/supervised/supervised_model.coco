@@ -9,10 +9,12 @@ class SupervisedModel(Model):
 # Inteface
 * `inputs : SupervisedInputs` -
 * `predictions : Tensor` -
+* `[features : Tensor]` -
+* `[labels : Tensor]` -
 * `[loss : Tensor]` -
 * `[update : Tensor]` -
     """
 
-    def predict(self, features):
-        predict_feed = self.inputs.predict_feed(features)
+    def predict(self, **kwargs):
+        predict_feed = self.inputs.predict_feed(**kwargs)
         return self.sess.run(self.predictions, feed_dict=predict_feed)
