@@ -44,6 +44,7 @@ class SupervisedTrainer(Trainer):
 
             if loss == "MSE":
                 self.model.loss = tf.nn.l2_loss(model.predictions, labels) |> tf.reduce_mean
+                self.model.score = tf.metrics.
             elif loss == "sigmoid":
                 self.model.loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=model.logits, labels=labels) |> tf.reduce_mean
             elif loss == "softmax":
