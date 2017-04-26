@@ -102,17 +102,53 @@ class GeneralInputs(Inputs):
 class ModelBase(Base):
     __metaclass__ = ABCMeta
 
-    def __init__(self, name, graph=None, sess=None, model_path="model", logs_path="logs", seed=None):
+    def __init__(self, name, inputs=None, graph=None, sess=None, model_path="model", logs_path="logs", seed=None):
         super(ModelBase, self).__init__(name, graph=graph, sess=sess)
 
         with self.graph.as_default():
             self.seed = seed
             self.model_path = model_path
             self.logs_path = logs_path
-            self.saver = tf.train.Saver(allow_empty=True)
 
             if self.seed is not None:
                 tf.set_random_seed(self.seed)
+
+            self.create_inputs_template(inputs)
+
+    @with_graph_as_default
+    def create_inputs_template(self, inputs):
+        if isinstance(inputs, dict):
+            if "name" not in inputs:
+                inputs["name"] = "{}_inputs".format(self.name)
+
+            self._inputs_template = self.inputs_class(**inputs)
+        else:
+            self._inputs_template = inputs
+
+
+    @with_graph_as_default
+    @copy_self
+    def __call__(self, *args, **kwargs):
+        inputs = kwargs.pop("inputs", {})
+
+        if isinstance(inputs, Inputs):
+            self.inputs = inputs
+
+        elif not self._inputs_template:
+            self.create_inputs_template(inputs)
+            self.inputs = self._inputs_template()
+
+        else:
+            self.inputs = self._inputs_template(**inputs)
+
+        self = super(ModelBase, self).__call__(*args, **kwargs)
+
+        return self
+
+    @property
+    def inputs_class(self):
+        return GeneralInputs
+
 
     @return_self
     @with_graph_as_default
@@ -120,14 +156,18 @@ class ModelBase(Base):
         if not restore:
             self.sess.run(tf.global_variables_initializer())
         else:
+            var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
             model_path = self.model_path if not model_path else model_path
-            self.saver.restore(self.sess, model_path)
+
+            saver = tf.train.Saver()
+            saver.restore(self.sess, model_path)
 
     @return_self
     @with_graph_as_default
     def save(self, model_path=None):
         model_path = self.model_path if not model_path else model_path
-        self.saver.save(self.sess, model_path)
+        saver = tf.train.Saver()
+        saver.save(self.sess, model_path)
 
 class Model(ModelBase):
 

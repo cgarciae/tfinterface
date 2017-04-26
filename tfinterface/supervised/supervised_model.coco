@@ -5,6 +5,7 @@ from tfinterface.metrics import r2_score, sigmoid_score, softmax_score
 import cytoolz as cz
 import itertools as it
 from tfinterface.decorators import return_self, with_graph_as_default
+from .supervised_inputs import SupervisedInputs
 
 class RequiredSupervisedModel(RequiredModel): pass
 SUPERVISED_MODEL = RequiredSupervisedModel()
@@ -27,16 +28,24 @@ class SupervisedModel(Model):
         self._optimizer = optimizer
         self._learning_rate_arg = learning_rate
 
-    def _post_build(self, inputs, *args, **kwargs):
-        super(SupervisedModel, self)._post_build(inputs, *args, **kwargs)
+    def _pre_build(self, inputs, *args, **kwargs):
+        pass
+
+
+    @property
+    def inputs_class(self):
+        return SupervisedInputs
+
+    def _post_build(self, *args, **kwargs):
+        super(SupervisedModel, self)._post_build(*args, **kwargs)
 
         if not hasattr(self, "labels"):
-            self.labels = inputs.labels
+            self.labels = self.inputs.labels
 
 
         if hasattr(self, "learning_rate"):
             learning_rate = self.learning_rate
-        elif hasattr(inputs, "learning_rate"):
+        elif hasattr(self.inputs, "learning_rate"):
             learning_rate = self.inputs.learning_rate
         else:
             learning_rate = self._learning_rate_arg
