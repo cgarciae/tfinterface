@@ -21,9 +21,17 @@ class Base(object):
 
     def __init__(self, name, graph=None, sess=None):
         self.name = name
-        self.template = tf.make_template(self.name, self.__class__._build)
+        self.template = tf.make_template(self.name, self.__class__.build)
         self.graph = graph if graph else tf.get_default_graph()
         self.sess = sess if sess else tf.get_default_session() if tf.get_default_session() else tf.Session(graph=self.graph)
+
+
+    def build(self, *args, **kwargs):
+        self._build(*args, **kwargs)
+        self._post_build(*args, **kwargs)
+
+    def _post_build(self, *args, **kwargs):
+        pass
 
     @with_graph_as_default
     @copy_self
