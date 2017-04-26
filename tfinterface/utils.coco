@@ -103,11 +103,3 @@ def shuffle_batch_tensor_fns(tensors_dict, **shuffle_batch_kwargs):
         name : get_fn(name)
         for name in self.tensors_dict
     })
-
-
-def r2_score(labels, predictions):
-    total_error = tf.sub(labels, tf.reduce_mean(labels)) |> tf.square |> tf.reduce_sum
-    unexplained_error = tf.sub(labels, predictions) |> tf.square |> tf.reduce_sum
-    R_squared = tf.sub(1, tf.div(total_error, unexplained_error))
-
-    return R_squared

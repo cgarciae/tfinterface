@@ -5,6 +5,7 @@ import cytoolz as cz
 import itertools as it
 from copy import copy
 from tfinterface.decorators import return_self, with_graph_as_default
+from tfinterface.metrics import r2_score, sigmoid_score, softmax_score
 
 from tfinterface.base import Trainer
 
@@ -24,11 +25,13 @@ class SupervisedTrainer(Trainer):
         self._learning_rate_arg = learning_rate
 
     def _build(self, model):
+        # copy model to remain semi-immutable
         self.model = copy(model)
 
-        inputs = model.inputs
+        inputs = self.model.inputs
 
-        labels = self.model.labels if hasattr(self.model, "labels") else inputs.labels
+        if not hasattr(self.model, "labels"):
+            self.model.labels = inputs.labels
 
 
         if hasattr(self.model, "learning_rate"):
@@ -43,17 +46,35 @@ class SupervisedTrainer(Trainer):
             loss = self._loss_arg
 
             if loss == "MSE":
-                self.model.loss = tf.nn.l2_loss(model.predictions, labels) |> tf.reduce_mean
-                self.model.score = tf.metrics.
+                self.model.loss = tf.nn.l2_loss(model.predictions, self.model.labels) |> tf.reduce_mean
             elif loss == "sigmoid":
-                self.model.loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=model.logits, labels=labels) |> tf.reduce_mean
+                self.model.loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=model.logits, labels=self.model.labels) |> tf.reduce_mean
             elif loss == "softmax":
-                self.model.loss = tf.nn.softmax_cross_entropy_with_logits(logits=model.logits, labels=labels) |> tf.reduce_mean
+                self.model.loss = tf.nn.softmax_cross_entropy_with_logits(logits=model.logits, labels=self.model.labels) |> tf.reduce_mean
 
-        if hasattr(self.model, "update"):
+
+        if not hasattr(self.model, "score"):
+            loss = self._loss_arg
+
+            if loss == "MSE":
+                self.model.score = r2_score(self.model.labels, self.model.predictions)
+            elif loss == "sigmoid":
+                self.model.score = sigmoid_score(self.model.labels, self.model.predictions)
+            elif loss == "softmax":
+                self.model.score = softmax_score(self.model.labels, self.model.predictions)
+
+        if not hasattr(self.model, "update"):
             self.model.update = self._optimizer(learning_rate).minimize(self.model.loss)
 
 
+    def predict(self, *args, **kwargs):
+        return self.model.predict(*args, **kwargs)
+
+    def score(self, **kwargs):
+        fit_feed = self.model.inputs.fit_feed(**kwargs)
+        score = self.sess.run(self.model.score, feed_dict=fit_feed)
+
+        return score
 
     @return_self
     @with_graph_as_default
@@ -80,5 +101,5 @@ class SupervisedTrainer(Trainer):
 
 
             ## REMOVE NEXT, ONLY FOR TESTING
-            loss = self.sess.run(self.model.loss, feed_dict=fit_feed)
-            print("loss {} at {}".format(loss, i))
+            loss, score = self.sess.run([self.model.loss, self.model.score], feed_dict=fit_feed)
+            print("loss {}, score {}, at {}".format(loss, score, i))
