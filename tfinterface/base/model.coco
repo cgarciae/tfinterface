@@ -6,7 +6,6 @@ from abc import abstractmethod
 import os
 
 class ModelBase(Base):
-
     def __init__(self, name, graph=None, sess=None, model_path=None, logs_path="logs", seed=None):
         super(ModelBase, self).__init__(name, graph=graph, sess=sess)
 
