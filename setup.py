@@ -34,7 +34,7 @@ setup(
         '': ['LICENCE', 'requirements.txt', 'README.md', 'CHANGELOG.md'],
         'tfinterface': ['version.txt', 'README-template.md']
     },
-    download_url = 'https://github.com/cgarciae/tfinterface/tarball/{0}'.format(version),
+    download_url = 'https://github.com/cgarciae/tfinterface/tarball/{0}'.format(__version__),
     include_package_data = True,
     long_description = read('README.md'),
     install_requires = reqs
