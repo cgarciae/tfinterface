@@ -1,3 +1,4 @@
-from .supervised_trainer import SupervisedTrainer
-from. supervised_model import SupervisedModel
+from. supervised_model import (
+    SupervisedModel, LinearClassifier, SigmoidClassifier, SoftmaxClassifier
+)
 from .supervised_inputs import SupervisedInputs

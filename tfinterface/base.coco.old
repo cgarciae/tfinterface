@@ -45,10 +45,12 @@ class Inputs(Base):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def fit_feed(self, *args, **kwargs): pass
+    def fit_feed(self, *args, **kwargs):
+        pass
 
     @abstractmethod
-    def predict_feed(self, *args, **kwargs): pass
+    def predict_feed(self, *args, **kwargs):
+        pass
 
 
 class GeneralInputs(Inputs):

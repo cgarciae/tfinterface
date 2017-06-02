@@ -1,9 +1,7 @@
-from tfinterface.utils import TENSOR, get_global_step
-from tfinterface.base import Inputs, RequiredInputs, GeneralInputs
+from tfinterface.utils import get_global_step
+from tfinterface.base import GeneralInputs
 import tensorflow as tf
 
-class RequiredSupervisedInputs(RequiredInputs): pass
-SUPERVISED_INPUTS = RequiredSupervisedInputs()
 
 class SupervisedInputs(GeneralInputs):
     """

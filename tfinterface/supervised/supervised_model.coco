@@ -1,24 +1,20 @@
 import tensorflow as tf
-from tfinterface.base import Model, RequiredModel
-from tfinterface.utils import TENSOR, Required
+from tfinterface.base import Model
 from tfinterface.metrics import r2_score, sigmoid_score, softmax_score
+from tfinterface.utils import huber_loss
 import cytoolz as cz
 import itertools as it
-from tfinterface.decorators import return_self, with_graph_as_default
+from tfinterface.decorators import return_self, with_graph_as_default, copy_self
 from .supervised_inputs import SupervisedInputs
-
-class RequiredSupervisedModel(RequiredModel): pass
-SUPERVISED_MODEL = RequiredSupervisedModel()
+from abc import abstractmethod
 
 class SupervisedModel(Model):
     """
 # Inteface
 * `inputs : SupervisedInputs` -
 * `predictions : Tensor` -
-* `[features : Tensor]` -
-* `[labels : Tensor]` -
-* `[loss : Tensor]` -
-* `[update : Tensor]` -
+* `loss : Tensor` -
+* `update : Tensor` -
     """
 
     def __init__(self, name, loss="mse", optimizer=tf.train.AdamOptimizer, learning_rate=0.001, **kwargs):
@@ -28,72 +24,68 @@ class SupervisedModel(Model):
         self._optimizer = optimizer
         self._learning_rate_arg = learning_rate
 
-    def _pre_build(self, inputs, *args, **kwargs):
+
+    def __call__(self, inputs, inputs_class = SupervisedInputs):
+        return super(SupervisedModel, self).__call__(inputs, inputs_class=inputs_class)
+
+    @return_self
+    def build_tensors(self):
+        super(SupervisedModel, self).build_tensors()
+
+        self.labels = self.get_labels()
+        self.learning_rate = self.get_learning_rate()
+        self.predictions = self.get_predictions()
+        self.loss = self.get_loss()
+        self.score_tensor = self.get_score_tensor()
+        self.update = self.get_update()
+        self.summaries = self.get_all_summaries()
+
+
+    def get_labels(self):
+        return self.inputs.labels
+
+    def get_learning_rate(self):
+        if hasattr(self.inputs, "learning_rate"):
+            return self.inputs.learning_rate
+        else:
+            return self._learning_rate_arg
+
+    @abstractmethod
+    def get_predictions(self):
         pass
 
+    @abstractmethod
+    def get_loss(self):
+        pass
 
-    @property
-    def inputs_class(self):
-        return SupervisedInputs
+    @abstractmethod
+    def get_score_tensor(self):
+        pass
 
-    def _post_build(self, *args, **kwargs):
-        super(SupervisedModel, self)._post_build(*args, **kwargs)
+    def get_update(self):
+        return self._optimizer(self.learning_rate).minimize(
+            self.loss,
+            global_step = self.inputs.global_step
+        )
 
-        if not hasattr(self, "labels"):
-            self.labels = self.inputs.labels
+    def get_all_summaries(self):
+        standard = self.get_standard_summaries()
+        summaries = self.get_summaries()
 
-
-        if hasattr(self, "learning_rate"):
-            learning_rate = self.learning_rate
-        elif hasattr(self.inputs, "learning_rate"):
-            learning_rate = self.inputs.learning_rate
+        if summaries:
+            return self.merge([standard, summaries])
         else:
-            learning_rate = self._learning_rate_arg
+            return standard
 
 
-        if not hasattr(self, "loss"):
-            loss = self._loss_arg
+    def get_standard_summaries(self):
+        return tf.summary.merge([
+            tf.summary.scalar("loss_summary", self.loss),
+            tf.summary.scalar("score_summary", self.score_tensor)
+        ])
 
-            if loss == "mse":
-                self.loss = tf.nn.l2_loss(self.predictions - self.labels) |> tf.reduce_mean
-            elif loss == "sigmoid":
-                self.loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits, labels=self.labels) |> tf.reduce_mean
-            elif loss == "softmax":
-                self.loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.labels) |> tf.reduce_mean
-
-
-        if not hasattr(self, "update"):
-            self.update = self._optimizer(learning_rate).minimize(self.loss, global_step=self.inputs.global_step)
-
-
-        if not hasattr(self, "score_tensor"):
-            loss = self._loss_arg
-
-            if loss == "mse":
-                self.score_tensor = r2_score(self.labels, self.predictions)
-            elif loss == "sigmoid":
-                self.score_tensor = sigmoid_score(self.labels, self.predictions)
-            elif loss == "softmax":
-                self.score_tensor = softmax_score(self.labels, self.predictions)
-
-        self._create_summaries()
-
-    def _create_summaries(self):
-        if not hasattr(self, "loss_summary"):
-            self.loss_summary = tf.summary.scalar("loss_summary", self.loss)
-
-        if not hasattr(self, "score_summary"):
-            self.score_summary = tf.summary.scalar("score_summary", self.score_tensor)
-
-
-        summaries = tf.summary.merge([self.loss_summary, self.score_summary])
-
-        if not hasattr(self, "summaries"):
-            self.summaries = summaries
-        else:
-            self.summaries = tf.summary.merge([self.summaries, summaries])
-
-
+    def get_summaries(self):
+        pass
 
     def predict(self, **kwargs):
         predict_feed = self.inputs.predict_feed(**kwargs)
@@ -107,8 +99,8 @@ class SupervisedModel(Model):
         return score
 
 
-    @return_self
     @with_graph_as_default
+    @return_self
     def fit(self, epochs=2000, data_generator=None, log_summaries=False, log_interval=20, print_test_info=False, writer_kwargs={}):
         if log_summaries and not hasattr(self, "writer"):
             self.writer = tf.summary.FileWriter(self.logs_path, graph=self.graph, **writer_kwargs)
@@ -133,7 +125,142 @@ class SupervisedModel(Model):
                     global_step = self.sess.run(self.inputs.global_step)
                 )
 
-            
+
             if print_test_info:
                 loss, score = self.sess.run([self.loss, self.score_tensor], feed_dict=fit_feed)
                 print("loss {}, score {}, at {}".format(loss, score, i))
+
+
+class SoftmaxClassifier(SupervisedModel):
+    """docstring for SoftmaxClassifier."""
+
+    @abstractmethod
+    def get_logits(self):
+        pass
+
+    def get_predictions(self):
+        self.logits = self.get_logits()
+
+        return tf.nn.softmax(self.logits)
+
+
+    def get_loss(self):
+        return (
+            tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.labels)
+            |> tf.reduce_mean
+        )
+
+
+    def get_score_tensor(self):
+        return softmax_score(self.labels, self.predictions)
+
+
+class SigmoidClassifier(SupervisedModel):
+    """docstring for SoftmaxClassifier."""
+
+    @abstractmethod
+    def get_logits(self):
+        pass
+
+    def get_predictions(self):
+        self.logits = self.get_logits()
+
+        return tf.nn.sigmoid(self.logits)
+
+
+    def get_loss(self):
+        return (
+            tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits, labels=self.labels)
+            |> tf.reduce_mean
+        )
+
+
+    def get_score_tensor(self):
+        return sigmoid_score(self.labels, self.predictions)
+
+
+class LinearClassifier(SupervisedModel):
+    """docstring for SoftmaxClassifier."""
+
+    def __init__(self, *args, **kwargs):
+        loss = kwargs.pop("loss", huber_loss)
+
+        if loss == "mse":
+            loss = tf.nn.l2_loss
+
+        elif loss == "huber":
+            loss = huber_loss
+
+        self._loss_fn = loss
+
+        super(LinearClassifier, self).__init__(*args, **kwargs)
+
+
+
+    def get_loss(self):
+        return (
+            self._loss_fn(self.predictions - self.labels)
+            |> tf.reduce_mean
+        )
+
+
+    def get_score_tensor(self):
+        return r2_score(self.labels, self.predictions)
+
+
+# def _post_build(self, *args, **kwargs):
+#     super(SupervisedModel, self)._post_build(*args, **kwargs)
+#
+#     if not hasattr(self, "labels"):
+#         self.labels = self.inputs.labels
+#
+#
+#     if hasattr(self, "learning_rate"):
+#         learning_rate = self.learning_rate
+#     elif hasattr(self.inputs, "learning_rate"):
+#         learning_rate = self.inputs.learning_rate
+#     else:
+#         learning_rate = self._learning_rate_arg
+#
+#
+#     if not hasattr(self, "loss"):
+#         loss = self._loss_arg
+#
+#         if loss == "mse":
+#             self.loss = tf.nn.l2_loss(self.predictions - self.labels) |> tf.reduce_mean
+#         elif loss == "sigmoid":
+#             self.loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits, labels=self.labels) |> tf.reduce_mean
+#         elif loss == "softmax":
+#             self.loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.labels) |> tf.reduce_mean
+#
+#
+#     if not hasattr(self, "update"):
+#         self.update = self._optimizer(learning_rate).minimize(self.loss, global_step=self.inputs.global_step)
+#
+#
+#     if not hasattr(self, "score_tensor"):
+#         loss = self._loss_arg
+#
+#         if loss == "mse":
+#             self.score_tensor = r2_score(self.labels, self.predictions)
+#         elif loss == "sigmoid":
+#             self.score_tensor = sigmoid_score(self.labels, self.predictions)
+#         elif loss == "softmax":
+#             self.score_tensor = softmax_score(self.labels, self.predictions)
+#
+#     self._create_summaries()
+#
+# def _create_summaries(self):
+#     if not hasattr(self, "loss_summary"):
+#         self.loss_summary = tf.summary.scalar("loss_summary", self.loss)
+#
+#     if not hasattr(self, "score_summary"):
+#         self.score_summary = tf.summary.scalar("score_summary", self.score_tensor)
+#
+#
+#     summaries = tf.summary.merge([self.loss_summary, self.score_summary])
+#
+#     if not hasattr(self, "summaries"):
+#         self.summaries = summaries
+#     else:
+#         self.summaries = tf.summary.merge([self.summaries, summaries])
