@@ -1,0 +1,29 @@
+import tensorflow as tf
+from tfinterface.decorators import return_self, with_graph_as_default, copy_self
+from abc import ABCMeta, abstractmethod
+
+
+
+class Base(object):
+    __metaclass__ = ABCMeta
+
+
+    def __init__(self, name, graph=None, sess=None):
+        self.name = name
+        self._template = tf.make_template(self.name, self.__class__._build)
+        self.graph = graph if graph else tf.get_default_graph()
+        self.sess = sess if sess else tf.get_default_session() if tf.get_default_session() else tf.Session(graph=self.graph)
+
+
+
+    def _build(self, *args, **kwargs):
+        return self.build_tensors(*args, **kwargs)
+
+    @abstractmethod
+    def build_tensors(self, *args, **kwargs):
+        pass
+
+    @with_graph_as_default
+    @copy_self
+    def __call__(self, *args, **kwargs):
+        return self._template(self, *args, **kwargs)

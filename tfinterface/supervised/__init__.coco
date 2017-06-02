@@ -1,2 +1,4 @@
-from .supervised_model import SupervisedModel, SupervisedTrainer
-from .linear_model import LinearRegression
+from. supervised_model import (
+    SupervisedModel, LinearClassifier, SigmoidClassifier, SoftmaxClassifier
+)
+from .supervised_inputs import SupervisedInputs

@@ -1,13 +1,7 @@
+from .version import __version__
 
 import tensorflow as tf
 
 from . import utils
-from . import interfaces
-from . import model_base
-from . import trainer_base
+from . import base
 from . import supervised
-
-
-import os
-with open(os.path.join(os.path.dirname(__file__), "version.txt")) as f:
-    __version__ = f.read().split("\n")[0]

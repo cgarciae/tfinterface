@@ -1,47 +1,47 @@
-import numpy as np
-import tensorflow as tf
-from tensorflow import layers as L
-from tfinterface.supervised import SupervisedModel, LinearRegression
-from phi.api import *
-
-
-class TestSupervised(object):
-
-
-    def test_supervised(self):
-
-        n = 2; std = 30.0;
-
-        x = np.random.uniform(low=0.0, high=100.0, size=(n, 1))
-        y = 3.5 * x + 40.3 + np.random.normal(loc=0.0, scale=std, size=(n, 1))
-
-        class LinearRegression(SupervisedModel):
-
-            def define_model(self, learning_rate=0.01):
-                with self.graph.as_default():
-                    self.x = tf.placeholder(tf.float32, [None, 1])
-                    self.y = tf.placeholder(tf.float32, [None, 1])
-
-                    self.h = self.x |> L.dense$(?, 1)
-
-                    error = self.h - self.y
-
-                    self.loss = error |> tf.nn.l2_loss |> tf.reduce_mean
-
-                    tf.summary.scalar('loss', self.loss)
-
-                    trainer = tf.train.AdamOptimizer(learning_rate)
-                    self.update = trainer.minimize(self.loss)
-
-        model = LinearRegression(learning_rate=0.1)
-        model.fit(x, y, steps=1)
-
-    def test_linear_regression(self):
-
-        n = 2; std = 30.0;
-
-        x = np.random.uniform(low=0.0, high=100.0, size=(n, 1))
-        y = 3.5 * x + 40.3 + np.random.normal(loc=0.0, scale=std, size=(n, 1))
-
-        model = LinearRegression()
-        model.fit(x, y, epochs=1)
+# import numpy as np
+# import tensorflow as tf
+# from tensorflow import layers as L
+# from tfinterface.supervised import SupervisedModel, LinearRegression
+# from phi.api import *
+#
+#
+# class TestSupervised(object):
+#
+#
+#     def test_supervised(self):
+#
+#         n = 2; std = 30.0;
+#
+#         x = np.random.uniform(low=0.0, high=100.0, size=(n, 1))
+#         y = 3.5 * x + 40.3 + np.random.normal(loc=0.0, scale=std, size=(n, 1))
+#
+#         class LinearRegression(SupervisedModel):
+#
+#             def _build(self, learning_rate=0.01):
+#                 with self.graph.as_default():
+#                     self.x = tf.placeholder(tf.float32, [None, 1])
+#                     self.y = tf.placeholder(tf.float32, [None, 1])
+#
+#                     self.h = self.x |> L.dense$(?, 1)
+#
+#                     error = self.h - self.y
+#
+#                     self.loss = error |> tf.nn.l2_loss |> tf.reduce_mean
+#
+#                     tf.summary.scalar('loss', self.loss)
+#
+#                     trainer = tf.train.AdamOptimizer(learning_rate)
+#                     self.update = trainer.minimize(self.loss)
+#
+#         model = LinearRegression(learning_rate=0.1)
+#         model.fit(x, y, steps=1)
+#
+#     def test_linear_regression(self):
+#
+#         n = 2; std = 30.0;
+#
+#         x = np.random.uniform(low=0.0, high=100.0, size=(n, 1))
+#         y = 3.5 * x + 40.3 + np.random.normal(loc=0.0, scale=std, size=(n, 1))
+#
+#         model = LinearRegression()
+#         model.fit(x, y, epochs=1)

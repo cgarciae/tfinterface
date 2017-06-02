@@ -1,55 +1,55 @@
-
-from tfinterface.model_base import ModelBase
-from tfinterface.supervised import SupervisedModel
-from tfinterface.reinforcement import ListEpisodeBuffer
-from pytest import raises
-
-
-class TestBase(object):
-
-    def test_base(self):
-        class SomeModel(ModelBase):
-            def define_model(self, y, z = 1):
-                self.y = y
-                self.z = z
-
-            @property
-            def default_trainer(self): return lambda x: None
-
-        assert SomeModel(42).y == 42
-        assert SomeModel(42).z == 1
-        assert SomeModel(42, 2).z == 2
-
-    def test_raises_on_not_implemented(self):
-        class SomeModel(ModelBase):
-            pass
-
-        class SomeSupervisedModel(SupervisedModel):
-            pass
-
-        with raises(TypeError):
-            SomeModel()
-            SomeSupervisedModel()
-
-
-    def test_supervised_model_implementation(self):
-
-        class SomeSupervisedModel(SupervisedModel):
-
-            def define_model(*args, **kwargs):
-                self.x = 1
-                self.y = 2
-                self.loss = 3
-
-            def predict_feed(): pass
-
-        assert SomeSupervisedModel()
-
-
-    def test_list_buffer(self):
-        buf = ListEpisodeBuffer()
-        buf.append((5,6))
-
-        assert buf.random_batch(10)[0] == (5,6)
-
-
+#
+# from tfinterface.model_base import ModelBase
+# from tfinterface.supervised import SupervisedModel
+# from tfinterface.reinforcement import ListEpisodeBuffer
+# from pytest import raises
+#
+#
+# class TestBase(object):
+#
+#     def test_base(self):
+#         class SomeModel(ModelBase):
+#             def _build(self, y, z = 1):
+#                 self.y = y
+#                 self.z = z
+#
+#             @property
+#             def default_trainer(self): return lambda x: None
+#
+#         assert SomeModel(42).y == 42
+#         assert SomeModel(42).z == 1
+#         assert SomeModel(42, 2).z == 2
+#
+#     def test_raises_on_not_implemented(self):
+#         class SomeModel(ModelBase):
+#             pass
+#
+#         class SomeSupervisedModel(SupervisedModel):
+#             pass
+#
+#         with raises(TypeError):
+#             SomeModel()
+#             SomeSupervisedModel()
+#
+#
+#     def test_supervised_model_implementation(self):
+#
+#         class SomeSupervisedModel(SupervisedModel):
+#
+#             def _build(*args, **kwargs):
+#                 self.x = 1
+#                 self.y = 2
+#                 self.loss = 3
+#
+#             def predict_feed(): pass
+#
+#         assert SomeSupervisedModel()
+#
+#
+#     def test_list_buffer(self):
+#         buf = ListEpisodeBuffer()
+#         buf.append((5,6))
+#
+#         assert buf.random_batch(10)[0] == (5,6)
+#
+#
