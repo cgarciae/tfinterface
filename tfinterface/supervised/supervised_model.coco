@@ -72,20 +72,18 @@ class SupervisedModel(Model):
         standard = self.get_standard_summaries()
         summaries = self.get_summaries()
 
-        if summaries:
-            return self.merge([standard, summaries])
-        else:
-            return standard
+
+        return tf.summary.merge(standard + summaries)
 
 
     def get_standard_summaries(self):
-        return tf.summary.merge([
+        return [
             tf.summary.scalar("loss_summary", self.loss),
             tf.summary.scalar("score_summary", self.score_tensor)
-        ])
+        ]
 
     def get_summaries(self):
-        pass
+        return []
 
     def predict(self, **kwargs):
         predict_feed = self.inputs.predict_feed(**kwargs)
@@ -206,61 +204,3 @@ class LinearClassifier(SupervisedModel):
 
     def get_score_tensor(self):
         return r2_score(self.labels, self.predictions)
-
-
-# def _post_build(self, *args, **kwargs):
-#     super(SupervisedModel, self)._post_build(*args, **kwargs)
-#
-#     if not hasattr(self, "labels"):
-#         self.labels = self.inputs.labels
-#
-#
-#     if hasattr(self, "learning_rate"):
-#         learning_rate = self.learning_rate
-#     elif hasattr(self.inputs, "learning_rate"):
-#         learning_rate = self.inputs.learning_rate
-#     else:
-#         learning_rate = self._learning_rate_arg
-#
-#
-#     if not hasattr(self, "loss"):
-#         loss = self._loss_arg
-#
-#         if loss == "mse":
-#             self.loss = tf.nn.l2_loss(self.predictions - self.labels) |> tf.reduce_mean
-#         elif loss == "sigmoid":
-#             self.loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits, labels=self.labels) |> tf.reduce_mean
-#         elif loss == "softmax":
-#             self.loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.labels) |> tf.reduce_mean
-#
-#
-#     if not hasattr(self, "update"):
-#         self.update = self._optimizer(learning_rate).minimize(self.loss, global_step=self.inputs.global_step)
-#
-#
-#     if not hasattr(self, "score_tensor"):
-#         loss = self._loss_arg
-#
-#         if loss == "mse":
-#             self.score_tensor = r2_score(self.labels, self.predictions)
-#         elif loss == "sigmoid":
-#             self.score_tensor = sigmoid_score(self.labels, self.predictions)
-#         elif loss == "softmax":
-#             self.score_tensor = softmax_score(self.labels, self.predictions)
-#
-#     self._create_summaries()
-#
-# def _create_summaries(self):
-#     if not hasattr(self, "loss_summary"):
-#         self.loss_summary = tf.summary.scalar("loss_summary", self.loss)
-#
-#     if not hasattr(self, "score_summary"):
-#         self.score_summary = tf.summary.scalar("score_summary", self.score_tensor)
-#
-#
-#     summaries = tf.summary.merge([self.loss_summary, self.score_summary])
-#
-#     if not hasattr(self, "summaries"):
-#         self.summaries = summaries
-#     else:
-#         self.summaries = tf.summary.merge([self.summaries, summaries])
