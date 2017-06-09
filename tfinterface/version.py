@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd5f1dd10
+# __coconut_hash__ = 0xd433b727
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -27,4 +27,4 @@ _coconut_sys.path.remove(_coconut_file_path)
 # http://www.opensource.org/licenses/MIT-license
 # Copyright (c) 2017, cgarciae <cgarcia.e88@gmail.com>
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
