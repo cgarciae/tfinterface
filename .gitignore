@@ -1,5 +1,5 @@
 #Custom
-tfinterface/**/*.py*
+# tfinterface/**/*.py*
 logs
 
 # Byte-compiled / optimized / DLL files
