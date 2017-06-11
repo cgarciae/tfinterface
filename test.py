@@ -1,4 +1,4 @@
-from tfinterface.supervised import SoftmaxClassifier
+import tfinterface
 import tensorflow as tf
 #
 # class Model(SoftmaxClassifier):
