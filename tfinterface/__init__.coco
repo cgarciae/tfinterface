@@ -5,5 +5,5 @@ import tensorflow as tf
 from . import utils
 from . import decorators
 from . import metrics
-from . import base
+from . import basecls
 from . import supervised

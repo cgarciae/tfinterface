@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x5e0402dd
+# __coconut_hash__ = 0x5c5f25fd
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -18,7 +18,7 @@ _coconut_sys.path.remove(_coconut_file_path)
 # Compiled Coconut: ------------------------------------------------------
 
 from tfinterface.utils import get_global_step
-from tfinterface.base import GeneralInputs
+from tfinterface.basecls import GeneralInputs
 import tensorflow as tf
 
 

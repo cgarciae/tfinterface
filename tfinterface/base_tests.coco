@@ -1,4 +1,4 @@
-from tfinterface.base import ModelBase, Inputs
+from tfinterface.basecls import ModelBase, Inputs
 import tensorflow as tf
 import numpy as np
 

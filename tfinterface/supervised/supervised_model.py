@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8b6f5dfa
+# __coconut_hash__ = 0x3e8f6fbb
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -18,7 +18,7 @@ _coconut_sys.path.remove(_coconut_file_path)
 # Compiled Coconut: ------------------------------------------------------
 
 import tensorflow as tf
-from tfinterface.base import Model
+from tfinterface.basecls import Model
 from tfinterface.metrics import r2_score
 from tfinterface.metrics import sigmoid_score
 from tfinterface.metrics import softmax_score

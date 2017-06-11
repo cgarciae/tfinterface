@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tfinterface.base import Model
+from tfinterface.basecls import Model
 from tfinterface.metrics import r2_score, sigmoid_score, softmax_score
 from tfinterface.utils import huber_loss
 import cytoolz as cz
