@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x17df029e
+# __coconut_hash__ = 0x502b2b6e
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -25,4 +25,4 @@ from . import utils
 from . import decorators
 from . import metricss
 from . import base
-from . import supervised
+# from . import supervised
