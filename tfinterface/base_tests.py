@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x653f9175
+# __coconut_hash__ = 0x352cb1a3
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -17,8 +17,8 @@ _coconut_sys.path.remove(_coconut_file_path)
 
 # Compiled Coconut: ------------------------------------------------------
 
-from tfinterface.basecls import ModelBase
-from tfinterface.basecls import Inputs
+from tfinterface.base import ModelBase
+from tfinterface.base import Inputs
 import tensorflow as tf
 import numpy as np
 

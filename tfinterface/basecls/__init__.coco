@@ -1,7 +1,3 @@
-print(1)
 from .base_class import Base
-print(2)
 from .inputs import Inputs, GeneralInputs
-print(3)
 from .model import ModelBase, Model
-print(6)

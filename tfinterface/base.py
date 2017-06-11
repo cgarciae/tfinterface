@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x98ff4753
+# __coconut_hash__ = 0x1df7abc2
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -23,7 +23,6 @@ from tfinterface.decorators import with_graph_as_default
 from tfinterface.decorators import copy_self
 from abc import ABCMeta
 from abc import abstractmethod
-
 
 
 class Base(object):

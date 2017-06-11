@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa9ec1a41
+# __coconut_hash__ = 0x17df029e
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -23,7 +23,6 @@ import tensorflow as tf
 
 from . import utils
 from . import decorators
-from . import metrics
-print(0)
-from . import basecls
+from . import metricss
+from . import base
 from . import supervised

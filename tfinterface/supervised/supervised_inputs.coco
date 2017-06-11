@@ -1,5 +1,5 @@
 from tfinterface.utils import get_global_step
-from tfinterface.basecls import GeneralInputs
+from tfinterface.base import GeneralInputs
 import tensorflow as tf
 
 

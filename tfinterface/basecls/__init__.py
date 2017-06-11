@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x641e986
+# __coconut_hash__ = 0x655e497a
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
-
-
 from __future__ import print_function, absolute_import, unicode_literals, division
-
-print("ACA")
 
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
@@ -21,12 +17,8 @@ _coconut_sys.path.remove(_coconut_file_path)
 
 # Compiled Coconut: ------------------------------------------------------
 
-print(1)
 from .base_class import Base
-print(2)
 from .inputs import Inputs
 from .inputs import GeneralInputs
-print(3)
 from .model import ModelBase
 from .model import Model
-print(6)
