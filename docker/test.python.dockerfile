@@ -1,3 +1,3 @@
-FROM python27
+FROM python:2.7
 
-RUN pip install numpy tensorflow git+https://github.com/cgarciae/tfinterface.git@develop
+RUN pip install numpy tensorflow

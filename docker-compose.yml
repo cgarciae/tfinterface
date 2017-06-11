@@ -32,3 +32,13 @@ services:
       - ./:/tfinterface
     working_dir: /tfinterface
     command: py.test -v -s -x --pdb -p no:sugar
+
+
+  python:
+    build:
+      context: ./docker
+      dockerfile: test.python.dockerfile
+    volumes:
+      - ./:/tfinterface
+    working_dir: /tfinterface
+    command: bash -c "pip install git+https://github.com/cgarciae/tfinterface.git@develop && cd ~ && python /tfinterface/test.py"
