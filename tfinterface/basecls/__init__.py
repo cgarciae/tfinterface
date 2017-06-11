@@ -6,6 +6,8 @@
 
 # Coconut Header: --------------------------------------------------------
 
+print("ACA")
+
 from __future__ import print_function, absolute_import, unicode_literals, division
 
 import sys as _coconut_sys, os.path as _coconut_os_path
