@@ -1,4 +1,4 @@
-import tfinterface
+from tfinterface.base import Base
 import tensorflow as tf
 #
 # class Model(SoftmaxClassifier):
@@ -82,3 +82,5 @@ import tensorflow as tf
 #
 #
 # print(model.predictions)
+
+print("OK")

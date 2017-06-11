@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xf3b88ec1
+# __coconut_hash__ = 0x8d2134b7
 
-# Compiled with Coconut version 1.2.3 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
 
-# Coconut Header: --------------------------------------------------------
+# Coconut Header: --------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
-
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
@@ -15,7 +14,7 @@ from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coco
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------------
 
 import tensorflow as tf
 import numpy as np
@@ -47,10 +46,9 @@ def random_batch_generator(*datas, **kwargs):
         idx = np.random.random_integers(0, high=n - 1, size=(batch_size,))
         yield tuple([data[idx] for data in datas])
 
-@_coconut_tco
 def select_columns(tensor, indexes):
     idx = tf.stack((tf.range(tf.shape(indexes)[0]), indexes), 1)
-    raise _coconut_tail_call(tf.gather_nd, tensor, idx)
+    return tf.gather_nd(tensor, idx)
 
 
 def soft_if(cond, then, else_):
@@ -79,12 +77,11 @@ def get_run():
 def shifted_log_loss(x, alfa=0.05):
     return -tf.log(x + alfa * (1.0 - x))
 
-@_coconut_tco
 def huber_loss(x, d=1.0):
     """
 See: https://en.wikipedia.org/wiki/Huber_loss
     """
-    raise _coconut_tail_call(tf.where, tf.abs(x) <= d, 0.5 * tf.square(x), d * (tf.abs(x) - 0.5 * d))
+    return tf.where(tf.abs(x) <= d, 0.5 * tf.square(x), d * (tf.abs(x) - 0.5 * d))
 
 
 def get_global_step():

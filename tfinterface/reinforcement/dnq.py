@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6f508e26
+# __coconut_hash__ = 0xc5ae263
 
-# Compiled with Coconut version 1.2.3 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
 
-# Coconut Header: --------------------------------------------------------
+# Coconut Header: --------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
-
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
@@ -15,7 +14,7 @@ from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coco
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------------
 
 from tfinterface.model_base import ModelBase
 from tfinterface.utils import select_columns
@@ -124,11 +123,10 @@ class DQN(ModelBase):
                 self.update_target_hard = tf.group(*[tv.assign(mv) for mv, tv in zip(self.target_model_variables, self.model_variables)])
 
 
-    @_coconut_tco
     def predict(self, S, training=False):
         Qs = self.sess.run(self.model.Qs, feed_dict=self.inputs.predict_feed(S))[0]
         policy = self.policy if training else self.test_policy
-        raise _coconut_tail_call(policy.select_action, q_values=Qs)
+        return policy.select_action(q_values=Qs)
 
     def fit(self, env, nb_steps=1000000, keep_prob=0.5, step=0, batch_size=32):
 

@@ -1,5 +1,5 @@
 #! /bin/bash
-pip install git+https://github.com/cgarciae/tfinterface.git@develop
+python setup.py install
 cp test.py ~
 cd ~
 python test.py

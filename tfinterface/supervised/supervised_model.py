@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8b6f5dfa
+# __coconut_hash__ = 0xf55a6a6f
 
-# Compiled with Coconut version 1.2.3 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
 
-# Coconut Header: --------------------------------------------------------
+# Coconut Header: --------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
-
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
@@ -15,7 +14,7 @@ from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coco
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------------
 
 import tensorflow as tf
 from tfinterface.base import Model
@@ -48,9 +47,8 @@ class SupervisedModel(Model):
         self._learning_rate_arg = learning_rate
 
 
-    @_coconut_tco
     def __call__(self, inputs, inputs_class=SupervisedInputs):
-        raise _coconut_tail_call(super(SupervisedModel, self).__call__, inputs, inputs_class=inputs_class)
+        return super(SupervisedModel, self).__call__(inputs, inputs_class=inputs_class)
 
     @return_self
     def build_tensors(self):
@@ -86,17 +84,15 @@ class SupervisedModel(Model):
     def get_score_tensor(self):
         pass
 
-    @_coconut_tco
     def get_update(self):
-        raise _coconut_tail_call(self._optimizer(self.learning_rate).minimize, self.loss, global_step=self.inputs.global_step)
+        return self._optimizer(self.learning_rate).minimize(self.loss, global_step=self.inputs.global_step)
 
-    @_coconut_tco
     def get_all_summaries(self):
         standard = self.get_standard_summaries()
         summaries = self.get_summaries()
 
 
-        raise _coconut_tail_call(tf.summary.merge, standard + summaries)
+        return tf.summary.merge(standard + summaries)
 
 
     def get_standard_summaries(self):
@@ -105,10 +101,9 @@ class SupervisedModel(Model):
     def get_summaries(self):
         return []
 
-    @_coconut_tco
     def predict(self, **kwargs):
         predict_feed = self.inputs.predict_feed(**kwargs)
-        raise _coconut_tail_call(self.sess.run, self.predictions, feed_dict=predict_feed)
+        return self.sess.run(self.predictions, feed_dict=predict_feed)
 
 
     def score(self, **kwargs):
@@ -154,20 +149,18 @@ class SoftmaxClassifier(SupervisedModel):
     def get_logits(self):
         pass
 
-    @_coconut_tco
     def get_predictions(self):
         self.logits = self.get_logits()
 
-        raise _coconut_tail_call(tf.nn.softmax, self.logits)
+        return tf.nn.softmax(self.logits)
 
 
     def get_loss(self):
         return ((tf.reduce_mean)(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.labels)))
 
 
-    @_coconut_tco
     def get_score_tensor(self):
-        raise _coconut_tail_call(softmax_score, self.labels, self.predictions)
+        return softmax_score(self.labels, self.predictions)
 
 
 class SigmoidClassifier(SupervisedModel):
@@ -177,20 +170,18 @@ class SigmoidClassifier(SupervisedModel):
     def get_logits(self):
         pass
 
-    @_coconut_tco
     def get_predictions(self):
         self.logits = self.get_logits()
 
-        raise _coconut_tail_call(tf.nn.sigmoid, self.logits)
+        return tf.nn.sigmoid(self.logits)
 
 
     def get_loss(self):
         return ((tf.reduce_mean)(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits, labels=self.labels)))
 
 
-    @_coconut_tco
     def get_score_tensor(self):
-        raise _coconut_tail_call(sigmoid_score, self.labels, self.predictions)
+        return sigmoid_score(self.labels, self.predictions)
 
 
 class LinearClassifier(SupervisedModel):
@@ -215,6 +206,5 @@ class LinearClassifier(SupervisedModel):
         return ((tf.reduce_mean)(self._loss_fn(self.predictions - self.labels)))
 
 
-    @_coconut_tco
     def get_score_tensor(self):
-        raise _coconut_tail_call(r2_score, self.labels, self.predictions)
+        return r2_score(self.labels, self.predictions)
