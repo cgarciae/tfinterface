@@ -1,5 +1,7 @@
 from .base_class import Base
+print(11)
 from tfinterface.decorators import return_self
+print(12)
 import tensorflow as tf
 from abc import abstractmethod
 

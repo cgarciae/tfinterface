@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x98ff4753
+# __coconut_hash__ = 0xd290b482
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -18,9 +18,11 @@ _coconut_sys.path.remove(_coconut_file_path)
 # Compiled Coconut: ------------------------------------------------------
 
 import tensorflow as tf
+print(4)
 from tfinterface.decorators import return_self
 from tfinterface.decorators import with_graph_as_default
 from tfinterface.decorators import copy_self
+print(5)
 from abc import ABCMeta
 from abc import abstractmethod
 

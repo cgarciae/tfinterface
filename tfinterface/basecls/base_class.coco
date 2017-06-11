@@ -1,5 +1,7 @@
 import tensorflow as tf
+print(4)
 from tfinterface.decorators import return_self, with_graph_as_default, copy_self
+print(5)
 from abc import ABCMeta, abstractmethod
 
 

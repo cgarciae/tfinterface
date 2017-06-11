@@ -1,7 +1,11 @@
+print(7)
 from .base_class import Base
+print(8)
 from .inputs import GeneralInputs, Inputs
+print(9)
 import tensorflow as tf
 from tfinterface.decorators import return_self, with_graph_as_default, copy_self
+print(10)
 from abc import abstractmethod
 import os
 
