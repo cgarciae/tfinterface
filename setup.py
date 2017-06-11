@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 from pip.req import parse_requirements
 from tfinterface import __version__
 
@@ -25,11 +25,7 @@ setup(
     license = "MIT",
     keywords = ["tensorflow", "deep learning", "neural networks"],
     url = "https://github.com/cgarciae/tfinterface",
-   	packages = [
-        'tfinterface',
-        'tfinterface.supervised',
-        'tfinterface.tests'
-    ],
+   	packages = find_packages(),
     package_data={
         '': ['LICENCE', 'requirements.txt', 'README.md', 'CHANGELOG.md'],
         'tfinterface': ['README-template.md']

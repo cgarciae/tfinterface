@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb0693717
+# __coconut_hash__ = 0x19a5f586
 
-# Compiled with Coconut version 1.2.3 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
 
-# Coconut Header: --------------------------------------------------------
+# Coconut Header: --------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
-
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
@@ -15,7 +14,7 @@ from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coco
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------------
 
 from .base_class import Base
 from .inputs import GeneralInputs
@@ -42,14 +41,12 @@ class ModelBase(Base):
 
     @with_graph_as_default
     @copy_self
-    @_coconut_tco
     def __call__(self, inputs, inputs_class=GeneralInputs):
 
         self.inputs = self.get_inputs(inputs, inputs_class=inputs_class)
 
-        raise _coconut_tail_call(super(ModelBase, self).__call__)
+        return super(ModelBase, self).__call__()
 
-    @_coconut_tco
     def get_inputs(self, inputs, inputs_class):
 
         if isinstance(inputs, Inputs):
@@ -59,7 +56,7 @@ class ModelBase(Base):
             if "name" not in inputs:
                 inputs["name"] = "{}_inputs".format(self.name)
 
-            raise _coconut_tail_call(inputs_class(**inputs))
+            return inputs_class(**inputs)()
 
 
 

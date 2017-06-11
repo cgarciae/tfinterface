@@ -1,0 +1,5 @@
+#! /bin/bash
+python setup.py install
+cp test.py ~
+cd ~
+python test.py

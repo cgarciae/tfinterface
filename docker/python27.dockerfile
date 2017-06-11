@@ -1,7 +1,4 @@
-FROM tensorflow/tensorflow:0.12.1
-
-RUN apt-get update
-RUN apt-get -y install git
+FROM tensorflow/tensorflow:1.1.0
 
 RUN apt-get update
 RUN apt-get -y install git

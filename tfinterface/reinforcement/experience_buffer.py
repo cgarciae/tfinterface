@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe5d2f5a9
+# __coconut_hash__ = 0x4a5b9aa9
 
-# Compiled with Coconut version 1.2.3 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
 
-# Coconut Header: --------------------------------------------------------
+# Coconut Header: --------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
-
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
@@ -15,7 +14,7 @@ from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coco
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------------
 
 from tfinterface.interfaces import ExperienceBufferInterface
 from operator import itemgetter
@@ -35,11 +34,10 @@ class ExperienceReplay(ExperienceBufferInterface):
             self.list.pop(0)
 
 
-    @_coconut_tco
     def random_batch(self, batch_size):
         idx = self.get_random_idx(batch_size)
         batch = [self.list[i] for i in idx]
-        raise _coconut_tail_call(self.__class__, self.__class__, lst=batch)
+        return self.__class__(self.__class__, lst=batch)
 
     def unzip(self):
         if len(self) > 0:
@@ -47,19 +45,16 @@ class ExperienceReplay(ExperienceBufferInterface):
         else:
             return [tuple()] * self.tuple_len
 
-    @_coconut_tco
     def __iter__(self):
-        raise _coconut_tail_call(iter, self.list)
+        return iter(self.list)
 
 
     def reset(self):
         pass
 
 
-    @_coconut_tco
     def __len__(self):
-        raise _coconut_tail_call(len, self.list)
+        return len(self.list)
 
-    @_coconut_tco
     def __getitem__(self, *args, **kwargs):
-        raise _coconut_tail_call(self.list.__getitem__, *args, **kwargs)
+        return self.list.__getitem__(*args, **kwargs)
