@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import os
 
 class Required(object): pass
 class RequiredTensor(Required): pass
@@ -63,6 +64,9 @@ See: https://en.wikipedia.org/wiki/Huber_loss
         0.5 * tf.square(x),
         d * ( tf.abs(x) - 0.5 * d )
     )
+
+def make_dirs_for_path(path):
+    os.path.dirname(path) |> os.makedirs()
 
 
 def get_global_step():
