@@ -4,6 +4,7 @@ import tensorflow as tf
 from tfinterface.decorators import return_self, with_graph_as_default, copy_self
 from abc import abstractmethod
 import os
+import utils
 
 class ModelBase(Base):
     def __init__(self, name, graph=None, sess=None, model_path=None, logs_path="logs", seed=None):
@@ -54,6 +55,7 @@ class ModelBase(Base):
     @with_graph_as_default
     def save(self, model_path=None):
         model_path = (self.model_path if not model_path else model_path) |> os.path.abspath
+        utils.make_dirs_for_path(model_path)
         tf.train.Saver().save(self.sess, model_path)
 
 
