@@ -66,7 +66,10 @@ See: https://en.wikipedia.org/wiki/Huber_loss
     )
 
 def make_dirs_for_path(path):
-    os.path.dirname(path) |> os.makedirs
+    dirname = os.path.dirname(path)
+    
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
 
 
 def get_global_step():
