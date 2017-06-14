@@ -4,7 +4,7 @@ import tensorflow as tf
 from tfinterface.decorators import return_self, with_graph_as_default, copy_self
 from abc import abstractmethod
 import os
-import utils
+from tfinterface import utils
 
 class ModelBase(Base):
     def __init__(self, name, graph=None, sess=None, model_path=None, logs_path="logs", seed=None):

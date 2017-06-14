@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x9d8de9db
+# __coconut_hash__ = 0xd49a715e
 
 # Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
 
@@ -15,37 +15,3 @@ from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
 # Compiled Coconut: ------------------------------------------------------------
-
-import tensorflow as tf
-
-
-def r2_score(labels, predictions):
-
-    total_error = (tf.reduce_sum)((tf.square)(tf.sub(labels, tf.reduce_mean(labels))))
-    unexplained_error = (tf.reduce_sum)((tf.square)(tf.sub(labels, predictions)))
-
-    r2 = 1.0 - total_error / unexplained_error
-
-    return r2
-
-
-def sigmoid_score(labels, predictions):
-
-    predictions_truth = predictions > 0.5
-    labels_truth = labels > 0.5
-
-    equal = tf.equal(predictions_truth, labels_truth)
-
-    score = (tf.reduce_mean)(tf.cast(equal, tf.float32))
-
-    return score
-
-
-def softmax_score(labels, predictions):
-
-    labels_argmax = tf.argmax(labels, axis=1)
-    predictions_argmax = tf.argmax(predictions, axis=1)
-
-    score = tf.contrib.metrics.accuracy(predictions_argmax, labels_argmax)
-
-    return score
