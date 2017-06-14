@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x83f129d6
+# __coconut_hash__ = 0xe07c8438
 
 # Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
 
@@ -85,7 +85,7 @@ See: https://en.wikipedia.org/wiki/Huber_loss
     return tf.where(tf.abs(x) <= d, 0.5 * tf.square(x), d * (tf.abs(x) - 0.5 * d))
 
 def make_dirs_for_path(path):
-    (os.makedirs())(os.path.dirname(path))
+    (os.makedirs)(os.path.dirname(path))
 
 
 def get_global_step():
