@@ -5,6 +5,7 @@ from tfinterface.decorators import return_self, with_graph_as_default, copy_self
 from abc import abstractmethod
 import os
 from tfinterface import utils
+import numpy as np
 
 class ModelBase(Base):
     def __init__(self, name, graph=None, sess=None, model_path=None, logs_path="logs", seed=None):
@@ -57,6 +58,23 @@ class ModelBase(Base):
         model_path = (self.model_path if not model_path else model_path) |> os.path.abspath
         utils.make_dirs_for_path(model_path)
         tf.train.Saver().save(self.sess, model_path)
+
+    @with_graph_as_default
+    def get_variables(self, graph_keys=tf.GraphKeys.TRAINABLE_VARIABLES, scope=None):
+        scope = scope if scope else self.name
+        return tf.get_collection(graph_keys, scope=scope)
+
+    @with_graph_as_default
+    def count_weights(self, *args, **kwargs):
+        return (
+            self.get_variables(*args, **kwargs)
+            |> map$(.get_shape())
+            |> map$(.as_list())
+            |> map$(np.prod)
+            |> list
+            |> np.sum
+        )
+
 
 
 class Model(ModelBase):
