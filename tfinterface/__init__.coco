@@ -7,3 +7,4 @@ from . import decorators
 from . import metrics
 from . import base
 from . import supervised
+from . import layers

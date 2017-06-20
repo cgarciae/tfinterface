@@ -1,0 +1,25 @@
+import tensorflow as tf
+
+def dense_batch_norm(*args, **kwargs):
+
+    name = kwargs.setdefault("name", "dense_batch_norm")
+    activation = kwargs.pop("activation", None)
+    bn_kwargs = kwargs.pop("bn_kwargs", {})
+
+    with tf.variable_scope(name):
+        net = tf.layers.dense(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **bn_kwargs)
+
+        return activation(net) if activation else net
+
+def conv2d_batch_norm(*args, **kwargs):
+
+    name = kwargs.setdefault("name", "dense_batch_norm")
+    activation = kwargs.pop("activation", None)
+    bn_kwargs = kwargs.pop("bn_kwargs", {})
+
+    with tf.variable_scope(name):
+        net = tf.layers.conv2d(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **bn_kwargs)
+
+        return activation(net) if activation else net
