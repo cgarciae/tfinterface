@@ -1,10 +1,14 @@
+import sys; sys.path.append("tfinterface")
+
 import os
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
-from tfinterface import __version__
+from version import __version__
+
+
 
 # parse requirements
-reqs = [str(r.req) for r in parse_requirements("requirements.txt", session=False)]
+with open('requirements.txt') as f:
+    reqs = f.read().splitlines()
 
 
 # Utility function to read the README file.
