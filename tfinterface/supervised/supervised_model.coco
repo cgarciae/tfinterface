@@ -24,53 +24,53 @@ class SupervisedModel(Model):
         self._optimizer = optimizer
         self._learning_rate_arg = learning_rate
 
-
-    def __call__(self, inputs, inputs_class = SupervisedInputs):
-        return super(SupervisedModel, self).__call__(inputs, inputs_class=inputs_class)
-
     @return_self
-    def build_tensors(self):
-        super(SupervisedModel, self).build_tensors()
+    def build_tensors(self, *args, **kwargs):
+        super(SupervisedModel, self).build_tensors(*args, **kwargs)
 
-        self.labels = self.get_labels()
-        self.learning_rate = self.get_learning_rate()
-        self.predictions = self.get_predictions()
-        self.loss = self.get_loss()
-        self.score_tensor = self.get_score_tensor()
-        self.update = self.get_update()
-        self.summaries = self.get_all_summaries()
+        self.inputs = self.get_inputs(*args, **kwargs)
+        self.labels = self.get_labels(*args, **kwargs)
+        self.learning_rate = self.get_learning_rate(*args, **kwargs)
+        self.predictions = self.get_predictions(*args, **kwargs)
+        self.loss = self.get_loss(*args, **kwargs)
+        self.score_tensor = self.get_score_tensor(*args, **kwargs)
+        self.update = self.get_update(*args, **kwargs)
+        self.summaries = self.get_all_summaries(*args, **kwargs)
 
 
-    def get_labels(self):
+    def get_inputs(self, inputs, *args, **kwargs):
+        return inputs
+
+    def get_labels(self, *args, **kwargs):
         return self.inputs.labels
 
-    def get_learning_rate(self):
+    def get_learning_rate(self, *args, **kwargs):
         if hasattr(self.inputs, "learning_rate"):
             return self.inputs.learning_rate
         else:
             return self._learning_rate_arg
 
     @abstractmethod
-    def get_predictions(self):
+    def get_predictions(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def get_loss(self):
+    def get_loss(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def get_score_tensor(self):
+    def get_score_tensor(self, *args, **kwargs):
         pass
 
-    def get_update(self):
+    def get_update(self, *args, **kwargs):
         return self._optimizer(self.learning_rate).minimize(
             self.loss,
             global_step = self.inputs.global_step
         )
 
-    def get_all_summaries(self):
+    def get_all_summaries(self, *args, **kwargs):
         standard = self.get_standard_summaries()
-        summaries = self.get_summaries()
+        summaries = self.get_summaries(*args, **kwargs)
 
 
         return tf.summary.merge(standard + summaries)
@@ -82,7 +82,7 @@ class SupervisedModel(Model):
             tf.summary.scalar("score_summary", self.score_tensor)
         ]
 
-    def get_summaries(self):
+    def get_summaries(self, *args, **kwargs):
         return []
 
     def predict(self, **kwargs):
@@ -136,20 +136,20 @@ class SoftmaxClassifier(SupervisedModel):
     def get_logits(self):
         pass
 
-    def get_predictions(self):
-        self.logits = self.get_logits()
+    def get_predictions(self, *args, **kwargs):
+        self.logits = self.get_logits(*args, **kwargs)
 
         return tf.nn.softmax(self.logits)
 
 
-    def get_loss(self):
+    def get_loss(self, *args, **kwargs):
         return (
             tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.labels)
             |> tf.reduce_mean
         )
 
 
-    def get_score_tensor(self):
+    def get_score_tensor(self, *args, **kwargs):
         return softmax_score(self.labels, self.predictions)
 
 
@@ -160,20 +160,20 @@ class SigmoidClassifier(SupervisedModel):
     def get_logits(self):
         pass
 
-    def get_predictions(self):
-        self.logits = self.get_logits()
+    def get_predictions(self, *args, **kwargs):
+        self.logits = self.get_logits(*args, **kwargs)
 
         return tf.nn.sigmoid(self.logits)
 
 
-    def get_loss(self):
+    def get_loss(self, *args, **kwargs):
         return (
             tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits, labels=self.labels)
             |> tf.reduce_mean
         )
 
 
-    def get_score_tensor(self):
+    def get_score_tensor(self, *args, **kwargs):
         return sigmoid_score(self.labels, self.predictions)
 
 
@@ -195,12 +195,12 @@ class LinearClassifier(SupervisedModel):
 
 
 
-    def get_loss(self):
+    def get_loss(self, *args, **kwargs):
         return (
             self._loss_fn(self.predictions - self.labels)
             |> tf.reduce_mean
         )
 
 
-    def get_score_tensor(self):
+    def get_score_tensor(self, *args, **kwargs):
         return r2_score(self.labels, self.predictions)

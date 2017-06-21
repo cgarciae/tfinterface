@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x339fb64c
+# __coconut_hash__ = 0xfc421b5e
 
 # Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
@@ -40,27 +40,6 @@ class ModelBase(Base):
 
             if self.seed is not None:
                 tf.set_random_seed(self.seed)
-
-
-    @with_graph_as_default
-    @copy_self
-    def __call__(self, inputs, inputs_class=GeneralInputs):
-
-        self.inputs = self.get_inputs(inputs, inputs_class=inputs_class)
-
-        return super(ModelBase, self).__call__()
-
-    def get_inputs(self, inputs, inputs_class):
-
-        if isinstance(inputs, Inputs):
-            return inputs
-
-        else:
-            if "name" not in inputs:
-                inputs["name"] = "{}_inputs".format(self.name)
-
-            return inputs_class(**inputs)()
-
 
 
     @return_self
