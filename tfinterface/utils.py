@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8d2134b7
+# __coconut_hash__ = 0xc35265b7
 
-# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
-# Coconut Header: --------------------------------------------------------------
+# Coconut Header: --------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
+
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
@@ -14,10 +15,11 @@ from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coco
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------
 
 import tensorflow as tf
 import numpy as np
+import os
 
 class Required(object):
     pass
@@ -82,6 +84,12 @@ def huber_loss(x, d=1.0):
 See: https://en.wikipedia.org/wiki/Huber_loss
     """
     return tf.where(tf.abs(x) <= d, 0.5 * tf.square(x), d * (tf.abs(x) - 0.5 * d))
+
+def make_dirs_for_path(path):
+    dirname = os.path.dirname(path)
+
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
 
 
 def get_global_step():

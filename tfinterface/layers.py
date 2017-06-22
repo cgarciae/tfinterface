@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe4d395b5
+# __coconut_hash__ = 0x368af68f
 
 # Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
@@ -17,14 +17,28 @@ _coconut_sys.path.remove(_coconut_file_path)
 
 # Compiled Coconut: ------------------------------------------------------
 
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+import tensorflow as tf
 
-# This file is part of dataget.
-# https://github.com/cgarciae/dataget
+def dense_batch_norm(*args, **kwargs):
 
-# Licensed under the MIT license:
-# http://www.opensource.org/licenses/MIT-license
-# Copyright (c) 2017, cgarciae <cgarcia.e88@gmail.com>
+    name = kwargs.setdefault("name", "dense_batch_norm")
+    activation = kwargs.pop("activation", None)
+    bn_kwargs = kwargs.pop("bn_kwargs", {})
 
-__version__ = "0.0.11"
+    with tf.variable_scope(name):
+        net = tf.layers.dense(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **bn_kwargs)
+
+        return activation(net) if activation else net
+
+def conv2d_batch_norm(*args, **kwargs):
+
+    name = kwargs.setdefault("name", "dense_batch_norm")
+    activation = kwargs.pop("activation", None)
+    bn_kwargs = kwargs.pop("bn_kwargs", {})
+
+    with tf.variable_scope(name):
+        net = tf.layers.conv2d(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **bn_kwargs)
+
+        return activation(net) if activation else net

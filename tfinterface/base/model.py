@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x19a5f586
+# __coconut_hash__ = 0xfc421b5e
 
-# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
-# Coconut Header: --------------------------------------------------------------
+# Coconut Header: --------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
+
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
@@ -14,7 +15,7 @@ from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coco
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------
 
 from .base_class import Base
 from .inputs import GeneralInputs
@@ -25,6 +26,8 @@ from tfinterface.decorators import with_graph_as_default
 from tfinterface.decorators import copy_self
 from abc import abstractmethod
 import os
+from tfinterface import utils
+import numpy as np
 
 class ModelBase(Base):
     def __init__(self, name, graph=None, sess=None, model_path=None, logs_path="logs", seed=None):
@@ -37,27 +40,6 @@ class ModelBase(Base):
 
             if self.seed is not None:
                 tf.set_random_seed(self.seed)
-
-
-    @with_graph_as_default
-    @copy_self
-    def __call__(self, inputs, inputs_class=GeneralInputs):
-
-        self.inputs = self.get_inputs(inputs, inputs_class=inputs_class)
-
-        return super(ModelBase, self).__call__()
-
-    def get_inputs(self, inputs, inputs_class):
-
-        if isinstance(inputs, Inputs):
-            return inputs
-
-        else:
-            if "name" not in inputs:
-                inputs["name"] = "{}_inputs".format(self.name)
-
-            return inputs_class(**inputs)()
-
 
 
     @return_self
@@ -75,7 +57,18 @@ class ModelBase(Base):
     @with_graph_as_default
     def save(self, model_path=None):
         model_path = (os.path.abspath)((self.model_path if not model_path else model_path))
+        utils.make_dirs_for_path(model_path)
         tf.train.Saver().save(self.sess, model_path)
+
+    @with_graph_as_default
+    def get_variables(self, graph_keys=tf.GraphKeys.TRAINABLE_VARIABLES, scope=None):
+        scope = scope if scope else self.name
+        return tf.get_collection(graph_keys, scope=scope)
+
+    @with_graph_as_default
+    def count_weights(self, *args, **kwargs):
+        return ((np.sum)((list)((_coconut.functools.partial(map, np.prod))((_coconut.functools.partial(map, _coconut.operator.methodcaller("as_list")))((_coconut.functools.partial(map, _coconut.operator.methodcaller("get_shape")))(self.get_variables(*args, **kwargs)))))))
+
 
 
 class Model(ModelBase):

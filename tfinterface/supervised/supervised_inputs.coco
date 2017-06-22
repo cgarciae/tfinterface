@@ -25,7 +25,8 @@ class SupervisedInputs(GeneralInputs):
             labels = labels,
             keep_prob = keep_prob_specs,
             training = training_specs,
-            global_step = get_global_step
+            global_step = get_global_step,
+            **kwargs
         )
 
     def fit_feed(self, keep_prob=None, **kwargs):

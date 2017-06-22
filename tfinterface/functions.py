@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe4d395b5
+# __coconut_hash__ = 0xaa0f5a8b
 
 # Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
@@ -16,15 +16,3 @@ from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
 # Compiled Coconut: ------------------------------------------------------
-
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# This file is part of dataget.
-# https://github.com/cgarciae/dataget
-
-# Licensed under the MIT license:
-# http://www.opensource.org/licenses/MIT-license
-# Copyright (c) 2017, cgarciae <cgarcia.e88@gmail.com>
-
-__version__ = "0.0.11"
