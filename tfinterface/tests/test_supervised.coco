@@ -1,0 +1,71 @@
+from tfinterface.supervised import SoftmaxClassifier, SupervisedInputs
+import tensorflow as tf
+import numpy as np
+from sklearn.metrics import accuracy_score
+
+n_classes = 3
+n_features = 2
+
+class Model(SoftmaxClassifier):
+
+    def get_labels(self, inputs):
+        # one hot labels
+        return tf.one_hot(inputs.labels, n_classes)
+
+    def get_logits(self, inputs):
+
+        print(inputs.features)
+        net = tf.layers.dense(inputs.features, 10, activation=tf.nn.relu)
+
+        return tf.layers.dense(net, n_classes)
+
+
+def get_templates():
+    graph = tf.Graph()
+    sess = tf.Session(graph=graph)
+
+    # inputs
+    inputs_t = SupervisedInputs(
+        name = "network_name" + "_inputs",
+        graph = graph,
+        sess = sess,
+        # tensors
+        features = dict(shape = (None, n_features)),
+        labels = dict(shape = (None,), dtype = tf.uint8)
+    )
+
+    model_t = template = Model(
+        name = "network_name",
+        graph = graph,
+        sess = sess
+    )
+
+    return inputs_t, model_t
+
+
+def get_data():
+    x = np.random.uniform(size=(10, n_features))
+    y = [0, 1, 2, 0, 1, 2, 0, 1, 2, 0]
+
+    return x, y
+
+
+class TestSupervised(object):
+
+    def test_softmax_score(self):
+
+        x, y = get_data()
+        inputs_t, model_t = get_templates()
+
+        inputs = inputs_t()
+        model = model_t(inputs)
+
+        model.initialize()
+
+        predictions_probs = model.predict(features = x)
+        predictions = np.argmax(predictions_probs, axis=1)
+
+        np.testing.assert_almost_equal(
+            model.score(features = x, labels = y),
+            accuracy_score(predictions, y)
+        )

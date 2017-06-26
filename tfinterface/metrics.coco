@@ -1,17 +1,17 @@
 import tensorflow as tf
 
 
-def r2_score(labels, predictions):
+def r2_score(predictions, labels):
 
     total_error = tf.sub(labels, tf.reduce_mean(labels)) |> tf.square |> tf.reduce_sum
-    unexplained_error = tf.sub(labels, predictions) |> tf.square |> tf.reduce_sum
+    unexplained_error = tf.sub(predictions, labels) |> tf.square |> tf.reduce_sum
 
     r2 = 1.0 - total_error / unexplained_error
 
     return r2
 
 
-def sigmoid_score(labels, predictions):
+def sigmoid_score(predictions, labels):
 
     predictions_truth = predictions > 0.5
     labels_truth = labels > 0.5
@@ -23,7 +23,7 @@ def sigmoid_score(labels, predictions):
     return score
 
 
-def softmax_score(labels, predictions):
+def softmax_score(predictions, labels):
 
     labels_argmax = tf.argmax(labels, axis=1)
     predictions_argmax = tf.argmax(predictions, axis=1)
