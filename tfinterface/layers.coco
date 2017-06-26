@@ -62,6 +62,43 @@ def fire_batch_norm(inputs, squeeze_filters, expand_1x1_filters, expand_3x3_filt
 
         return tf.concat([expand_1x1, expand_3x3], axis=3)
 
+
+#####################################
+# dense_block
+#####################################
+
+def conv2d_dense_layer(net, growth_rate, bottleneck, **kwargs):
+
+    inputs = net
+
+    with tf.variable_scope(None, default_name="conv2d_dense_layer"):
+
+        if bottleneck:
+            net = tf.layers.conv2d(net, bottleneck, [1, 1], **kwargs)
+
+        net = tf.layers.conv2d(net, growth_rate, [3, 3], **kwargs)
+
+        return tf.concat([inputs, net], axis=3)
+
+
+
+def conv2d_dense_block(net, growth_rate, n_layers, **kwargs):
+    name = kwargs.pop("name", None)
+    bottleneck = kwargs.pop("bottleneck", None)
+    compression = kwargs.pop("compression", None)
+
+    with tf.variable_scope(name, default_name="conv2d_dense_block"):
+        for layers in range(n_layers):
+            net = conv2d_dense_layer(net, growth_rate, bottleneck, **kwargs)
+
+        if compression:
+            filters = int(net.get_shape()[-1]) * compression
+            filters = int(filters)
+
+            net = tf.layers.conv2d(net, filters, [1, 1], **kwargs)
+
+        return net
+
 if __name__ == '__main__':
     x = tf.random_uniform(shape=(16, 32, 32, 3))
 
