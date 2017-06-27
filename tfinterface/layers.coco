@@ -8,11 +8,11 @@ def dense_batch_norm(*args, **kwargs):
 
     name = kwargs.pop("name", None)
     activation = kwargs.pop("activation", None)
-    bn_kwargs = kwargs.pop("bn_kwargs", {})
+    batch_norm = kwargs.pop("batch_norm", {})
 
     with tf.variable_scope(name, "DenseBatchNorm"):
         net = tf.layers.dense(*args, **kwargs)
-        net = tf.layers.batch_normalization(net, **bn_kwargs)
+        net = tf.layers.batch_normalization(net, **batch_norm)
 
         return activation(net) if activation else net
 
@@ -20,11 +20,11 @@ def conv2d_batch_norm(*args, **kwargs):
 
     name = kwargs.pop("name", None)
     activation = kwargs.pop("activation", None)
-    bn_kwargs = kwargs.pop("bn_kwargs", {})
+    batch_norm = kwargs.pop("batch_norm", {})
 
     with tf.variable_scope(name, default_name="Conv2dBatchNorm"):
         net = tf.layers.conv2d(*args, **kwargs)
-        net = tf.layers.batch_normalization(net, **bn_kwargs)
+        net = tf.layers.batch_normalization(net, **batch_norm)
 
         return activation(net) if activation else net
 
@@ -67,18 +67,43 @@ def fire_batch_norm(inputs, squeeze_filters, expand_1x1_filters, expand_3x3_filt
 # dense_block
 #####################################
 
-def conv2d_dense_layer(net, growth_rate, bottleneck, **kwargs):
+def conv2d_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs):
 
-    inputs = net
+    with tf.variable_scope(None, default_name="Conv2dDenseNetlayer"):
 
-    with tf.variable_scope(None, default_name="conv2d_dense_layer"):
+        net = tf.layers.batch_normalization(net, **batch_norm)
+        net = activation(net) if activation else net
 
         if bottleneck:
             net = tf.layers.conv2d(net, bottleneck, [1, 1], **kwargs)
+            net = tf.layers.dropout(net, **dropout)
+            net = tf.layers.batch_normalization(net, **batch_norm)
+            net = activation(net) if activation else net
 
         net = tf.layers.conv2d(net, growth_rate, [3, 3], **kwargs)
+        net = tf.layers.dropout(net, **dropout)
 
-        return tf.concat([inputs, net], axis=3)
+        return net
+
+
+def conv2d_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs):
+
+    filters = int(net.get_shape()[-1])
+
+    if compression:
+        if compression <= 1:
+            filters = int(filters * compression)
+        else:
+            filters = compression
+
+    with tf.variable_scope(None, default_name="TransitionLayer"):
+
+        net = tf.layers.batch_normalization(net, **batch_norm)
+        net = activation(net) if activation else net
+        net = tf.layers.conv2d(net, filters, [1, 1], **kwargs)
+        net = tf.layers.dropout(net, **dropout)
+
+        return net
 
 
 
@@ -86,16 +111,17 @@ def conv2d_dense_block(net, growth_rate, n_layers, **kwargs):
     name = kwargs.pop("name", None)
     bottleneck = kwargs.pop("bottleneck", None)
     compression = kwargs.pop("compression", None)
+    batch_norm = kwargs.pop("batch_norm", {})
+    dropout = kwargs.pop("dropout", {})
+    activation = kwargs.pop("activation")
 
     with tf.variable_scope(name, default_name="conv2d_dense_block"):
+
         for layers in range(n_layers):
-            net = conv2d_dense_layer(net, growth_rate, bottleneck, **kwargs)
+            layer = conv2d_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs)
+            net = tf.concat([net, layer], axis=3)
 
-        if compression:
-            filters = int(net.get_shape()[-1]) * compression
-            filters = int(filters)
-
-            net = tf.layers.conv2d(net, filters, [1, 1], **kwargs)
+        net = conv2d_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs)
 
         return net
 
@@ -103,6 +129,6 @@ if __name__ == '__main__':
     x = tf.random_uniform(shape=(16, 32, 32, 3))
 
     f = fire(x, 32, 64, 64, activation=tf.nn.relu)
-    fb = fire_batch_norm(x, 32, 64, 64, activation=tf.nn.relu, bn_kwargs=dict(training=True))
+    fb = fire_batch_norm(x, 32, 64, 64, activation=tf.nn.relu, batch_norm=dict(training=True))
     print(f)
     print(fb)
