@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe315f1dc
+# __coconut_hash__ = 0x82b5ab91
 
 # Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
@@ -641,7 +641,7 @@ def conv2d_dense_block(net, growth_rate, n_layers, **kwargs):
 # densefire_block
 #####################################
 
-def conv2d_densefire_layer(net, bottleneck, growth_rate_1x1, growth_rate_3x3, dropout, activation, **kwargs):
+def conv2d_densefire_layer(net, bottleneck, growth_rate_1x1, growth_rate_3x3, batch_norm, dropout, activation, **kwargs):
 
     with tf.variable_scope(None, default_name="Conv2dDenseFireLayer"):
 
@@ -676,7 +676,7 @@ def conv2d_densefire_block(net, bottleneck, growth_rate_1x1, growth_rate_3x3, n_
     with tf.variable_scope(name, default_name="Conv2dDenseFireBlock"):
 
         for layers in range(n_layers):
-            layer = conv2d_densefire_layer(net, bottleneck, growth_rate_1x1, growth_rate_3x3, dropout, activation, **kwargs)
+            layer = conv2d_densefire_layer(net, bottleneck, growth_rate_1x1, growth_rate_3x3, batch_norm, dropout, activation, **kwargs)
             net = tf.concat([net, layer], axis=3)
 
         net = conv2d_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs)
