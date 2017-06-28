@@ -163,7 +163,7 @@ def conv2d_densefire_block(net, bottleneck, growth_rate_1x1, growth_rate_3x3, n_
     with tf.variable_scope(name, default_name="Conv2dDenseFireBlock"):
 
         for layers in range(n_layers):
-            layer = conv2d_densefire_layer(net, bottleneck, growth_rate_1x1, growth_rate_3x3, batch_norm, dropout, activation, **kwargs)
+            layer = (net, bottleneck, growth_rate_1x1, growth_rate_3x3, batch_norm, dropout, activation, **kwargs)
             net = tf.concat([net, layer], axis=3)
 
         net = conv2d_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs)
