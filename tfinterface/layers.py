@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x191a7c23
+# __coconut_hash__ = 0xe315f1dc
 
 # Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
@@ -619,7 +619,6 @@ def conv2d_densenet_transition(net, compression, batch_norm, dropout, activation
         return net
 
 
-
 def conv2d_dense_block(net, growth_rate, n_layers, **kwargs):
     name = kwargs.pop("name", None)
     bottleneck = kwargs.pop("bottleneck", None)
@@ -628,7 +627,7 @@ def conv2d_dense_block(net, growth_rate, n_layers, **kwargs):
     dropout = kwargs.pop("dropout", {})
     activation = kwargs.pop("activation")
 
-    with tf.variable_scope(name, default_name="conv2d_dense_block"):
+    with tf.variable_scope(name, default_name="Conv2dDenseNetBlock"):
 
         for layers in range(n_layers):
             layer = conv2d_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs)
@@ -636,7 +635,53 @@ def conv2d_dense_block(net, growth_rate, n_layers, **kwargs):
 
         net = conv2d_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs)
 
+    return net
+
+#####################################
+# densefire_block
+#####################################
+
+def conv2d_densefire_layer(net, bottleneck, growth_rate_1x1, growth_rate_3x3, dropout, activation, **kwargs):
+
+    with tf.variable_scope(None, default_name="Conv2dDenseFireLayer"):
+
+        net = tf.layers.batch_normalization(net, **batch_norm)
+        net = activation(net) if activation else net
+
+# squeeze
+        net = tf.layers.conv2d(net, bottleneck, [1, 1], **kwargs)
+        net = tf.layers.dropout(net, **dropout)
+        net = tf.layers.batch_normalization(net, **batch_norm)
+        net = activation(net) if activation else net
+
+# expand
+        expand_1x1 = tf.layers.conv2d(net, growth_rate_1x1, [1, 1], **kwargs)
+        expand_3x3 = tf.layers.conv2d(net, growth_rate_3x3, [3, 3], **kwargs)
+
+# concat
+        net = tf.concat([expand_1x1, expand_3x3], axis=3)
+        net = tf.layers.dropout(net, **dropout)
+
         return net
+
+
+
+def conv2d_densefire_block(net, bottleneck, growth_rate_1x1, growth_rate_3x3, n_layers, **kwargs):
+    name = kwargs.pop("name", None)
+    compression = kwargs.pop("compression", None)
+    batch_norm = kwargs.pop("batch_norm", {})
+    dropout = kwargs.pop("dropout", {})
+    activation = kwargs.pop("activation")
+
+    with tf.variable_scope(name, default_name="Conv2dDenseFireBlock"):
+
+        for layers in range(n_layers):
+            layer = conv2d_densefire_layer(net, bottleneck, growth_rate_1x1, growth_rate_3x3, dropout, activation, **kwargs)
+            net = tf.concat([net, layer], axis=3)
+
+        net = conv2d_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs)
+
+    return net
 
 if __name__ == '__main__':
     x = tf.random_uniform(shape=(16, 32, 32, 3))
