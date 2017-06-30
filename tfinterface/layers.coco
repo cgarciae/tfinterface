@@ -170,10 +170,42 @@ def conv2d_densefire_block(net, bottleneck, growth_rate_1x1, growth_rate_3x3, n_
 
     return net
 
-if __name__ == '__main__':
-    x = tf.random_uniform(shape=(16, 32, 32, 3))
 
-    f = fire(x, 32, 64, 64, activation=tf.nn.relu)
-    fb = fire_batch_norm(x, 32, 64, 64, activation=tf.nn.relu, batch_norm=dict(training=True))
-    print(f)
-    print(fb)
+#####################################
+# ensemble_dropout
+#####################################
+
+def layer_dropout(net, **kwargs):
+
+    name = kwargs.pop("name", None)
+
+    with tf.name_scope(name, default_name="LayerDropout"):
+        shape = tf.shape(net)
+        batche_size = shape[0]
+        ones_shape = [batche_size] + ([1] * (len(net.get_shape()) - 1))
+        ones = tf.ones(shape=ones_shape)
+
+        return net * tf.layers.dropout(ones, **kwargs)
+
+def ensemble_dropout(networks, **kwargs):
+
+    return networks |> map$(layer_dropout$(?, **kwargs)) |> list
+
+
+if __name__ == '__main__':
+
+    sess = tf.Session()
+
+    training = tf.placeholder(tf.bool, shape=())
+    x = tf.random_uniform(shape=(16, 3, 2))
+
+
+    # f = fire(x, 32, 64, 64, activation=tf.nn.relu)
+    # fb = fire_batch_norm(x, 32, 64, 64, activation=tf.nn.relu, batch_norm=dict(training=True))
+    # print(f)
+    # print(fb)
+
+    e = ensemble_dropout([x], rate = 0.5, training=training)
+
+    print(e)
+    print(sess.run(e, feed_dict={training: True}))
