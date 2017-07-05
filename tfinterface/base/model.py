@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xfc421b5e
+# __coconut_hash__ = 0xff55eb1
 
 # Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
@@ -76,3 +76,20 @@ class Model(ModelBase):
     @abstractmethod
     def predict(self, *args, **kwargs):
         pass
+
+
+    def batch_predict(self, generator, print_fn=None, **kwargs):
+
+        preds_list = []
+
+        for batch in generator:
+            kwargs = kwargs.copy()
+            kwargs.update(batch)
+
+            preds = self.predict(**kwargs)
+            preds_list.append(preds)
+
+            if print_fn:
+                print_fn(batch)
+
+        return np.concatenate(preds_list, axis=0)

@@ -91,8 +91,8 @@ class SupervisedModel(Model):
 
 
     def score(self, **kwargs):
-        fit_feed = self.inputs.fit_feed(**kwargs)
-        score = self.sess.run(self.score_tensor, feed_dict=fit_feed)
+        predict_feed = self.inputs.predict_feed(**kwargs)
+        score = self.sess.run(self.score_tensor, feed_dict=predict_feed)
 
         return score
 
@@ -150,7 +150,7 @@ class SoftmaxClassifier(SupervisedModel):
 
 
     def get_score_tensor(self, *args, **kwargs):
-        return softmax_score(self.labels, self.predictions)
+        return softmax_score(self.predictions, self.labels)
 
 
 class SigmoidClassifier(SupervisedModel):
@@ -174,7 +174,7 @@ class SigmoidClassifier(SupervisedModel):
 
 
     def get_score_tensor(self, *args, **kwargs):
-        return sigmoid_score(self.labels, self.predictions)
+        return sigmoid_score(self.predictions, self.labels)
 
 
 class LinearClassifier(SupervisedModel):
@@ -203,4 +203,4 @@ class LinearClassifier(SupervisedModel):
 
 
     def get_score_tensor(self, *args, **kwargs):
-        return r2_score(self.labels, self.predictions)
+        return r2_score(self.predictions, self.labels)

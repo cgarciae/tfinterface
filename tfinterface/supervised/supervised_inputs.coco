@@ -13,35 +13,15 @@ class SupervisedInputs(GeneralInputs):
 * `global_step : Variable` -
     """
 
-    def __init__(self, name, features, labels, dropout_keep_prob=0.5, **kwargs):
-        self._dropout_keep_prob = dropout_keep_prob
+    def __init__(self, name, features, labels, **kwargs):
 
-        training_specs = dict(shape=(), dtype=tf.bool)
-        keep_prob_specs = dict(shape=(), dtype=tf.float32)
+        training = dict(shape=(), dtype=tf.bool, fit=True, predict=False)
 
         super(SupervisedInputs, self).__init__(
             name,
             features = features,
             labels = labels,
-            keep_prob = keep_prob_specs,
-            training = training_specs,
+            training = training,
             global_step = get_global_step,
-            **kwargs
-        )
-
-    def fit_feed(self, keep_prob=None, **kwargs):
-        keep_prob = keep_prob if keep_prob is not None else self._dropout_keep_prob
-
-        return self.get_feed(
-            keep_prob = keep_prob,
-            training = True,
-            **kwargs
-        )
-
-
-    def predict_feed(self, **kwargs):
-        return self.get_feed(
-            keep_prob = 1.0,
-            training = False,
             **kwargs
         )
