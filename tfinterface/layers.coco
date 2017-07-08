@@ -76,12 +76,12 @@ def conv2d_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, act
 
         if bottleneck:
             net = tf.layers.conv2d(net, bottleneck, [1, 1], **kwargs)
-            net = tf.layers.dropout(net, **dropout)
+            net = tf.layers.dropout(net, **dropout) if dropout else net
             net = tf.layers.batch_normalization(net, **batch_norm)
             net = activation(net) if activation else net
 
         net = tf.layers.conv2d(net, growth_rate, [3, 3], **kwargs)
-        net = tf.layers.dropout(net, **dropout)
+        net = tf.layers.dropout(net, **dropout) if dropout else net
 
         return net
 
