@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x538c9a03
+# __coconut_hash__ = 0x61b4aef3
 
 # Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
@@ -88,6 +88,9 @@ def fire_batch_norm(inputs, squeeze_filters, expand_1x1_filters, expand_3x3_filt
 
 def conv2d_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs):
 
+
+    kwargs.setdefault("kernel_regularizer")
+
     with tf.variable_scope(None, default_name="Conv2dDenseNetlayer"):
 
         net = tf.layers.batch_normalization(net, **batch_norm)
@@ -95,12 +98,12 @@ def conv2d_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, act
 
         if bottleneck:
             net = tf.layers.conv2d(net, bottleneck, [1, 1], **kwargs)
-            net = tf.layers.dropout(net, **dropout)
+            net = tf.layers.dropout(net, **dropout) if dropout else net
             net = tf.layers.batch_normalization(net, **batch_norm)
             net = activation(net) if activation else net
 
         net = tf.layers.conv2d(net, growth_rate, [3, 3], **kwargs)
-        net = tf.layers.dropout(net, **dropout)
+        net = tf.layers.dropout(net, **dropout) if dropout else net
 
         return net
 
@@ -131,7 +134,17 @@ def conv2d_dense_block(net, growth_rate, n_layers, **kwargs):
     compression = kwargs.pop("compression", None)
     batch_norm = kwargs.pop("batch_norm", {})
     dropout = kwargs.pop("dropout", {})
-    activation = kwargs.pop("activation")
+    activation = kwargs.pop("activation", None)
+    weight_decay = kwargs.pop("weight_decay", None)
+
+    kwargs.setdefault("use_bias", False)
+
+    if weight_decay:
+        kwargs.setdefault("kernel_regularizer", tf.contrib.layers.l2_regularizer(weight_decay))
+        batch_norm.setdefault("beta_regularizer", tf.contrib.layers.l2_regularizer(weight_decay))
+        batch_norm.setdefault("gamma_regularizer", tf.contrib.layers.l2_regularizer(weight_decay))
+
+
 
     with tf.variable_scope(name, default_name="Conv2dDenseNetBlock"):
 
