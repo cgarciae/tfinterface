@@ -99,7 +99,7 @@ class SupervisedModel(Model):
 
     @with_graph_as_default
     @return_self
-    def fit(self, epochs=2000, data_generator=None, log_summaries=False, log_interval=20, print_test_info=False, writer_kwargs={}):
+    def fit(self, epochs=2000, data_generator=None, log_summaries=False, log_interval=20, print_test_info=False, writer_kwargs={}, on_train=[]):
         if log_summaries and not hasattr(self, "writer"):
             self.writer = tf.summary.FileWriter(self.logs_path, graph=self.graph, **writer_kwargs)
 
@@ -112,21 +112,38 @@ class SupervisedModel(Model):
 
         data_generator = data_generator |> cz.take$(epochs)
 
-        for i, batch_feed_data in enumerate(data_generator):
+        for step, batch_feed_data in enumerate(data_generator):
 
             fit_feed = self.inputs.fit_feed(**batch_feed_data)
             _, summaries = self.sess.run([self.update, self.summaries], feed_dict=fit_feed)
 
-            if log_summaries and i % log_interval == 0 and summaries is not None:
+            if log_summaries and step % log_interval == 0 and summaries is not None:
                 self.writer.add_summary(
                     summaries,
                     global_step = self.sess.run(self.inputs.global_step)
                 )
 
 
-            if print_test_info and i % log_interval == 0:
+            if print_test_info and step % log_interval == 0:
                 loss, score = self.sess.run([self.loss, self.score_tensor], feed_dict=fit_feed)
-                print("loss {}, score {}, at {}".format(loss, score, i))
+                print("loss {}, score {}, at {}".format(loss, score, step))
+
+
+            ################
+            # on_train
+            ################
+            kwargs = dict(
+                step = step,
+                loss = loss,
+                score = score
+            )
+
+            for command in on_train:
+                when = command.get("when", lambda **kwargs: True)
+                do = command.get("do")
+
+                if when(**kwargs):
+                    do(**kwargs)
 
 
 class SoftmaxClassifier(SupervisedModel):
