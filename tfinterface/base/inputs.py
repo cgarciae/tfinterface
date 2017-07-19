@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x2b1ffe0e
+# __coconut_hash__ = 0x4a03cf29
 
 # Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
 
@@ -515,7 +515,11 @@ from .base_class import Base
 from tfinterface.decorators import return_self
 import tensorflow as tf
 from abc import abstractmethod
+import threading
 
+##############
+# data
+##############
 class PlaceholderDefaults(_coconut.collections.namedtuple("PlaceholderDefaults", "tensor predict fit"), _coconut.object):
     __slots__ = ()
     __ne__ = _coconut.object.__ne__
@@ -523,8 +527,18 @@ class NoValue(_coconut.collections.namedtuple("NoValue", ""), _coconut.object):
     __slots__ = ()
     __ne__ = _coconut.object.__ne__
 
+
+##############
+# exceptions
+##############
+
 class NoValueException(Exception):
     pass
+
+
+##############
+# functions
+##############
 
 def fit_tuple(*_coconut_match_to_args, **_coconut_match_to_kwargs):
     _coconut_match_check = False
@@ -562,6 +576,11 @@ def predict_tuple(*_coconut_match_to_args, **_coconut_match_to_kwargs):
 
     return tensor, predict
 
+
+
+##############
+# classes
+##############
 class Inputs(Base):
 
     @abstractmethod
@@ -584,6 +603,9 @@ class GeneralInputs(Inputs):
         input_specs.update(input_overrides)
         self._placeholder_defaults = {}
 
+        queue_ops = input_specs.pop("queue_ops", {})
+
+        queued = {}
         for name, spec in input_specs.items():
 
             if type(spec) is not dict:
@@ -598,7 +620,11 @@ class GeneralInputs(Inputs):
                     spec = dict(value=spec)
 
 
-            if "shape" in spec:
+            if "queue" in spec:
+                queued[name] = spec
+                continue
+
+            elif "shape" in spec:
                 dtype = spec.get("dtype", tf.float32)
                 shape = spec.get("shape")
                 tensor = tf.placeholder(dtype=dtype, shape=shape, name=name)
@@ -617,6 +643,15 @@ class GeneralInputs(Inputs):
 
             setattr(self, name, tensor)
 
+        if queued:
+            self.queue_runner = CustomRunner(self, queued, **queue_ops)
+
+            for name, tensor in self.queue_runner.tensors_dict.items():
+                setattr(self, name, tensor)
+
+
+    def start_queue(self, *args, **kwargs):
+        return self.queue_runner.start_threads(*args, **kwargs)
 
     def get_feed(self, **kwargs):
         return (dict(((getattr(self, key)), (value)) for key, value in kwargs.items()))
@@ -657,3 +692,57 @@ class GeneralInputs(Inputs):
         feed.update(self.get_feed(*args, **kwargs))
 
         return feed
+
+
+
+
+
+class CustomRunner(object):
+    """
+    This class manages the the background threads needed to fill
+        a queue full of data.
+    """
+    def __init__(self, inputs, queued, batch_size=64, capacity=2000, min_after_dequeue=1000, **queue_ops):
+        self.inputs = inputs
+
+        names = names = queued.keys()
+        specs = queued.values()
+        placeholder_shapes = [spec.get("shape", [None]) for spec in specs]
+        shapes = [shape[1:] for shape in placeholder_shapes]
+        dtypes = [spec.get("dtype", tf.float32) for spec in specs]
+
+# placeholders_dict
+        self.placeholders_dict = dict(((name), (tf.placeholder(dtype=dtype, shape=shape, name=name + "_placeholder"))) for dtype, shape, name in zip(dtypes, placeholder_shapes, names))
+
+
+# The actual queue of data. The queue contains a vector for
+# the mnist features, and a scalar label.
+        self.queue = tf.RandomShuffleQueue(capacity, min_after_dequeue, dtypes, shapes=shapes, names=names, **queue_ops)
+
+# The symbolic operation to add data to the queue
+# we could do some preprocessing here or do it in numpy. In this example
+# we do the scaling in numpy
+        self.enqueue_op = self.queue.enqueue_many(self.placeholders_dict)
+
+# tensors_dict
+        self.tensors_dict = self.queue.dequeue_many(batch_size)
+
+
+
+    def thread_main(self, data_generator):
+        """
+        Function run on alternate thread. Basically, keep adding data to the queue.
+        """
+        for data in data_generator:
+            feed_dict = dict(((placeholders_dict[name]), (value)) for name, value in data.items())
+            self.inputs.sess.run(self.enqueue_op, feed_dict=feed_dict)
+
+    def start_queue(self, data_generator, n_threads=1):
+        """ Start background threads to feed queue """
+        threads = []
+        for n in range(n_threads):
+            t = threading.Thread(target=self.thread_main, args=(data_generator,))
+            t.daemon = True  # thread will close when parent quits
+            t.start()
+            threads.append(t)
+        return threads
