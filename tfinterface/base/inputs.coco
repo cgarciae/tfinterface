@@ -77,8 +77,7 @@ class GeneralInputs(Inputs):
             elif "tensor_fn" in spec:
                 tensor_fn = spec.get("tensor_fn")
                 tensor = tensor_fn()
-
-
+            
             setattr(self, name, tensor)
 
 

@@ -28,7 +28,6 @@ class SupervisedModel(Model):
     def build_tensors(self, *args, **kwargs):
         super(SupervisedModel, self).build_tensors(*args, **kwargs)
 
-        self.inputs = self.get_inputs(*args, **kwargs)
         self.labels = self.get_labels(*args, **kwargs)
         self.learning_rate = self.get_learning_rate(*args, **kwargs)
         self.predictions = self.get_predictions(*args, **kwargs)
@@ -38,8 +37,7 @@ class SupervisedModel(Model):
         self.summaries = self.get_all_summaries(*args, **kwargs)
 
 
-    def get_inputs(self, inputs, *args, **kwargs):
-        return inputs
+
 
     def get_labels(self, *args, **kwargs):
         return self.inputs.labels

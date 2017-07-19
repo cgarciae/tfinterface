@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tfinterface.decorators import return_self, with_graph_as_default, copy_self
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 
 class Base(object):

@@ -7,9 +7,9 @@ import os
 from tfinterface import utils
 import numpy as np
 
-class ModelBase(Base):
+class Model(Base):
     def __init__(self, name, graph=None, sess=None, model_path=None, logs_path="logs", seed=None):
-        super(ModelBase, self).__init__(name, graph=graph, sess=sess)
+        super(Model, self).__init__(name, graph=graph, sess=sess)
 
         with self.graph.as_default():
             self.seed = seed
@@ -54,9 +54,14 @@ class ModelBase(Base):
             |> np.sum
         )
 
+    @return_self
+    def build_tensors(self, *args, **kwargs):
+        super(Model, self).build_tensors(*args, **kwargs)
+        self.inputs = self.get_inputs(*args, **kwargs)
 
+    def get_inputs(self, inputs, *args, **kwargs):
+        return inputs
 
-class Model(ModelBase):
 
     @abstractmethod
     def predict(self, *args, **kwargs): pass
