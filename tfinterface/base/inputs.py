@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x4a03cf29
+# __coconut_hash__ = 0x2280dd47
 
-# Compiled with Coconut version 1.2.3-post_dev1 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
 
-# Coconut Header: --------------------------------------------------------
+# Coconut Header: --------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
 import sys as _coconut_sys
@@ -115,7 +115,6 @@ if _coconut_sys.version_info < (3,):
         _coconut_copy_reg.pickle(_coconut_functools.partial, _coconut_reduce_partial)
 else:
     py_chr, py_filter, py_hex, py_input, py_int, py_map, py_object, py_oct, py_open, py_print, py_range, py_str, py_zip, py_filter, py_reversed, py_enumerate = chr, filter, hex, input, int, map, object, oct, open, print, range, str, zip, filter, reversed, enumerate
-
 class _coconut(object):
     import collections, functools, imp, itertools, operator, types, copy, pickle
     if _coconut_sys.version_info >= (2, 7):
@@ -126,7 +125,7 @@ class _coconut(object):
         abc = collections
     else:
         import collections.abc as abc
-    IndexError, KeyError, NameError, TypeError, ValueError, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, repr, bytearray = IndexError, KeyError, NameError, TypeError, ValueError, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, staticmethod(repr), bytearray
+    Exception, IndexError, KeyError, NameError, TypeError, ValueError, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, repr, bytearray = Exception, IndexError, KeyError, NameError, TypeError, ValueError, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, staticmethod(repr), bytearray
 class MatchError(Exception):
     """Pattern-matching error."""
     __slots__ = ("pattern", "value")
@@ -193,7 +192,7 @@ def _coconut_minus(*args): return _coconut.operator.neg(*args) if len(args) < 2 
 @_coconut.functools.wraps(_coconut.itertools.tee)
 def tee(iterable, n=2):
     if n >= 0 and _coconut.isinstance(iterable, (_coconut.tuple, _coconut.frozenset)):
-        return (iterable,)*n
+        return (iterable,) * n
     elif n > 0 and (_coconut.hasattr(iterable, "__copy__") or _coconut.isinstance(iterable, _coconut.abc.Sequence)):
         return (iterable,) + _coconut.tuple(_coconut.copy.copy(iterable) for i in range(n - 1))
     else:
@@ -286,7 +285,7 @@ class concurrent_map(map):
     __slots__ = ()
     def __iter__(self):
         from concurrent.futures import ThreadPoolExecutor
-        from multiprocessing import cpu_count  # cpu_count() * 5 is the default Python 3 thread count
+        from multiprocessing import cpu_count  # cpu_count() * 5 is the default Python 3.5 thread count
         with ThreadPoolExecutor(cpu_count() * 5) as executor:
             return _coconut.iter(_coconut.tuple(executor.map(self._func, *self._iters)))
     def __repr__(self):
@@ -407,17 +406,37 @@ class count(object):
     def __fmap__(self, func):
         return _coconut_map(func, self)
 def recursive_iterator(func):
-    """Decorates a function by optimizing it for iterator recursion.
-    Requires function arguments to be pickleable."""
+    """Decorates a function by optimizing it for iterator recursion."""
     tee_store = {}
+    backup_tee_store = []
     @_coconut.functools.wraps(func)
     def recursive_iterator_func(*args, **kwargs):
-        hashable_args_kwargs = _coconut.pickle.dumps((args, kwargs), _coconut.pickle.HIGHEST_PROTOCOL)
+        key, use_backup = (args, frozenset(kwargs)), False
         try:
-            to_tee = tee_store[hashable_args_kwargs]
-        except _coconut.KeyError:
-            to_tee = func(*args, **kwargs)
-        tee_store[hashable_args_kwargs], to_return = _coconut_tee(to_tee)
+            hash(key)
+        except _coconut.Exception:
+            try:
+                key = _coconut.pickle.dumps(key, _coconut.pickle.HIGHEST_PROTOCOL)
+            except _coconut.Exception:
+                use_backup = True
+        if use_backup:
+            to_tee, store_pos = None, None
+            for i, (k, v) in _coconut.enumerate(backup_tee_store):
+                if k == key:
+                    to_tee, store_pos = v, i
+            if to_tee is None:
+                to_tee = func(*args, **kwargs)
+            to_store, to_return = _coconut_tee(to_tee)
+            if store_pos is None:
+                backup_tee_store.append([key, to_store])
+            else:
+                backup_tee_store[store_pos][1] = to_store
+        else:
+            try:
+                to_tee = tee_store[key]
+            except _coconut.KeyError:
+                to_tee = func(*args, **kwargs)
+            tee_store[key], to_return = _coconut_tee(to_tee)
         return to_return
     return recursive_iterator_func
 def addpattern(base_func):
@@ -508,11 +527,11 @@ def fmap(func, obj):
         return "".join(args)
     return obj.__class__(args)
 _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_reversed, _coconut_map, _coconut_tee, _coconut_zip, reduce, takewhile, dropwhile = MatchError, count, enumerate, reversed, map, tee, zip, _coconut.functools.reduce, _coconut.itertools.takewhile, _coconut.itertools.dropwhile
-
-# Compiled Coconut: ------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------------
 
 from .base_class import Base
 from tfinterface.decorators import return_self
+from tfinterface.decorators import with_graph_as_default
 import tensorflow as tf
 from abc import abstractmethod
 import threading
@@ -620,7 +639,7 @@ class GeneralInputs(Inputs):
                     spec = dict(value=spec)
 
 
-            if "queue" in spec:
+            if spec.get("queue", False):
                 queued[name] = spec
                 continue
 
@@ -649,9 +668,9 @@ class GeneralInputs(Inputs):
             for name, tensor in self.queue_runner.tensors_dict.items():
                 setattr(self, name, tensor)
 
-
+    @with_graph_as_default
     def start_queue(self, *args, **kwargs):
-        return self.queue_runner.start_threads(*args, **kwargs)
+        return self.queue_runner.start_queue(*args, **kwargs)
 
     def get_feed(self, **kwargs):
         return (dict(((getattr(self, key)), (value)) for key, value in kwargs.items()))
@@ -729,19 +748,27 @@ class CustomRunner(object):
 
 
 
-    def thread_main(self, data_generator):
+    def thread_main(self, data_generator_fn):
         """
         Function run on alternate thread. Basically, keep adding data to the queue.
         """
-        for data in data_generator:
-            feed_dict = dict(((placeholders_dict[name]), (value)) for name, value in data.items())
-            self.inputs.sess.run(self.enqueue_op, feed_dict=feed_dict)
+        data_generator = data_generator_fn()
 
-    def start_queue(self, data_generator, n_threads=1):
+        try:
+            for data in data_generator:
+                feed_dict = dict(((self.placeholders_dict[name]), (value)) for name, value in data.items())
+                self.inputs.sess.run(self.enqueue_op, feed_dict=feed_dict)
+        except Exception as e:
+            import thread
+
+            print(e)
+            thread.interrupt_main()
+
+    def start_queue(self, data_generator_fn, n_threads=1):
         """ Start background threads to feed queue """
         threads = []
         for n in range(n_threads):
-            t = threading.Thread(target=self.thread_main, args=(data_generator,))
+            t = threading.Thread(target=self.thread_main, args=(data_generator_fn,))
             t.daemon = True  # thread will close when parent quits
             t.start()
             threads.append(t)

@@ -1,5 +1,5 @@
 from .base_class import Base
-from tfinterface.decorators import return_self
+from tfinterface.decorators import return_self, with_graph_as_default
 import tensorflow as tf
 from abc import abstractmethod
 import threading
@@ -79,7 +79,7 @@ class GeneralInputs(Inputs):
                     spec = dict(value=spec)
 
 
-            if "queue" in spec:
+            if spec.get("queue", False):
                 queued[name] = spec
                 continue
 
@@ -112,9 +112,9 @@ class GeneralInputs(Inputs):
             for name, tensor in self.queue_runner.tensors_dict.items():
                 setattr(self, name, tensor)
 
-
+    @with_graph_as_default
     def start_queue(self, *args, **kwargs):
-        return self.queue_runner.start_threads(*args, **kwargs)
+        return self.queue_runner.start_queue(*args, **kwargs)
 
     def get_feed(self, **kwargs):
         return ({
@@ -201,19 +201,27 @@ class CustomRunner(object):
 
 
 
-    def thread_main(self, data_generator):
+    def thread_main(self, data_generator_fn):
         """
         Function run on alternate thread. Basically, keep adding data to the queue.
         """
-        for data in data_generator:
-            feed_dict = { placeholders_dict[name]: value for name, value in data.items() }
-            self.inputs.sess.run(self.enqueue_op, feed_dict = feed_dict)
+        data_generator = data_generator_fn()
 
-    def start_queue(self, data_generator, n_threads = 1):
+        try:
+            for data in data_generator:
+                feed_dict = { self.placeholders_dict[name]: value for name, value in data.items() }
+                self.inputs.sess.run(self.enqueue_op, feed_dict = feed_dict)
+        except Exception as e:
+            import thread
+
+            print(e)
+            thread.interrupt_main()
+
+    def start_queue(self, data_generator_fn, n_threads = 1):
         """ Start background threads to feed queue """
         threads = []
         for n in range(n_threads):
-            t = threading.Thread(target=self.thread_main, args=(data_generator,))
+            t = threading.Thread(target=self.thread_main, args=(data_generator_fn,))
             t.daemon = True # thread will close when parent quits
             t.start()
             threads.append(t)
