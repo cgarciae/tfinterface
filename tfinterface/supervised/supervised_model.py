@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3ebd5be7
+# __coconut_hash__ = 0x9f43c6c4
 
 # Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
 
@@ -29,6 +29,7 @@ from tfinterface.decorators import with_graph_as_default
 from tfinterface.decorators import copy_self
 from .supervised_inputs import SupervisedInputs
 from abc import abstractmethod
+from abc import ABCMeta
 
 class SupervisedModel(Model):
     """
@@ -38,6 +39,8 @@ class SupervisedModel(Model):
 * `loss : Tensor` -
 * `update : Tensor` -
     """
+
+    __metaclass__ = ABCMeta
 
     def __init__(self, name, loss="mse", optimizer=tf.train.AdamOptimizer, learning_rate=0.001, **kwargs):
         super(SupervisedModel, self).__init__(name, **kwargs)

@@ -6,7 +6,7 @@ import cytoolz as cz
 import itertools as it
 from tfinterface.decorators import return_self, with_graph_as_default, copy_self
 from .supervised_inputs import SupervisedInputs
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 
 class SupervisedModel(Model):
     """
@@ -16,6 +16,8 @@ class SupervisedModel(Model):
 * `loss : Tensor` -
 * `update : Tensor` -
     """
+
+    __metaclass__ = ABCMeta
 
     def __init__(self, name, loss="mse", optimizer=tf.train.AdamOptimizer, learning_rate=0.001, **kwargs):
         super(SupervisedModel, self).__init__(name, **kwargs)
