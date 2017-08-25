@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x9f43c6c4
+# __coconut_hash__ = 0x23fe4b24
 
-# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
+# Compiled with Coconut version 1.2.3 [Colonel]
 
-# Coconut Header: --------------------------------------------------------------
+# Coconut Header: --------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
+
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
@@ -14,7 +15,7 @@ from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coco
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------
 
 import tensorflow as tf
 from tfinterface.base import Model
@@ -30,6 +31,7 @@ from tfinterface.decorators import copy_self
 from .supervised_inputs import SupervisedInputs
 from abc import abstractmethod
 from abc import ABCMeta
+
 
 class SupervisedModel(Model):
     """
@@ -198,26 +200,27 @@ class SigmoidClassifier(SupervisedModel):
         return sigmoid_score(self.predictions, self.labels)
 
 
-class LinearClassifier(SupervisedModel):
+class RegressionModel(SupervisedModel):
     """docstring for SoftmaxClassifier."""
 
     def __init__(self, *args, **kwargs):
-        loss = kwargs.pop("loss", huber_loss)
+        loss = kwargs.pop("loss", "mse")
 
         if loss == "mse":
-            loss = tf.nn.l2_loss
+            loss = lambda error: tf.nn.l2_loss(error) * 2
 
         elif loss == "huber":
             loss = huber_loss
 
         self._loss_fn = loss
 
-        super(LinearClassifier, self).__init__(*args, **kwargs)
+        super(RegressionModel, self).__init__(*args, **kwargs)
 
 
 
     def get_loss(self, *args, **kwargs):
-        return ((tf.reduce_mean)(self._loss_fn(self.predictions - self.labels)))
+        error = self.predictions - self.labels
+        return (tf.reduce_mean)(self._loss_fn(error))
 
 
     def get_score_tensor(self, *args, **kwargs):

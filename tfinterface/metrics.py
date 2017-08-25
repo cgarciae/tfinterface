@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x60baaa94
+# __coconut_hash__ = 0x55c2c2d0
 
-# Compiled with Coconut version 1.2.3-post_dev5 [Colonel]
+# Compiled with Coconut version 1.2.3 [Colonel]
 
-# Coconut Header: --------------------------------------------------------------
+# Coconut Header: --------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
+
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
@@ -14,19 +15,18 @@ from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coco
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------------
+# Compiled Coconut: ------------------------------------------------------
 
 import tensorflow as tf
 
 
 def r2_score(predictions, labels):
 
-    total_error = (tf.reduce_sum)((tf.square)(tf.sub(labels, tf.reduce_mean(labels))))
-    unexplained_error = (tf.reduce_sum)((tf.square)(tf.sub(predictions, labels)))
+    total_error = tf.reduce_sum(tf.square(tf.subtract(labels, tf.reduce_mean(labels))))
+    unexplained_error = tf.reduce_sum(tf.square(tf.subtract(labels, predictions)))
+    R_squared = 1.0 - unexplained_error / total_error
 
-    r2 = 1.0 - total_error / unexplained_error
-
-    return r2
+    return R_squared
 
 
 def sigmoid_score(predictions, labels):

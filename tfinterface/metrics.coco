@@ -3,12 +3,11 @@ import tensorflow as tf
 
 def r2_score(predictions, labels):
 
-    total_error = tf.sub(labels, tf.reduce_mean(labels)) |> tf.square |> tf.reduce_sum
-    unexplained_error = tf.sub(predictions, labels) |> tf.square |> tf.reduce_sum
+    total_error = tf.reduce_sum(tf.square(tf.subtract(labels, tf.reduce_mean(labels))))
+    unexplained_error = tf.reduce_sum(tf.square(tf.subtract(labels, predictions)))
+    R_squared = 1.0 - unexplained_error / total_error
 
-    r2 = 1.0 - total_error / unexplained_error
-
-    return r2
+    return R_squared
 
 
 def sigmoid_score(predictions, labels):

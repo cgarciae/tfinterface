@@ -8,6 +8,7 @@ from tfinterface.decorators import return_self, with_graph_as_default, copy_self
 from .supervised_inputs import SupervisedInputs
 from abc import abstractmethod, ABCMeta
 
+
 class SupervisedModel(Model):
     """
 # Inteface
@@ -194,29 +195,27 @@ class SigmoidClassifier(SupervisedModel):
         return sigmoid_score(self.predictions, self.labels)
 
 
-class LinearClassifier(SupervisedModel):
+class RegressionModel(SupervisedModel):
     """docstring for SoftmaxClassifier."""
 
     def __init__(self, *args, **kwargs):
-        loss = kwargs.pop("loss", huber_loss)
+        loss = kwargs.pop("loss", "mse")
 
         if loss == "mse":
-            loss = tf.nn.l2_loss
+            loss = lambda error: tf.nn.l2_loss(error) * 2
 
         elif loss == "huber":
             loss = huber_loss
 
         self._loss_fn = loss
 
-        super(LinearClassifier, self).__init__(*args, **kwargs)
+        super(RegressionModel, self).__init__(*args, **kwargs)
 
 
 
     def get_loss(self, *args, **kwargs):
-        return (
-            self._loss_fn(self.predictions - self.labels)
-            |> tf.reduce_mean
-        )
+        error = self.predictions - self.labels
+        return self._loss_fn(error) |> tf.reduce_mean
 
 
     def get_score_tensor(self, *args, **kwargs):
