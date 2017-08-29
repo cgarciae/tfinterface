@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x5f93a881
+# __coconut_hash__ = 0xc034878d
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -71,8 +71,9 @@ class Model(Base):
 
     @return_self
     def build_tensors(self, *args, **kwargs):
-        super(Model, self).build_tensors(*args, **kwargs)
         self.inputs = self.get_inputs(*args, **kwargs)
+        super(Model, self).build_tensors(*args, **kwargs)
+
 
     def get_inputs(self, inputs, *args, **kwargs):
         return inputs

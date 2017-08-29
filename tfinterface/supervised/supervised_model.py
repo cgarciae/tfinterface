@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x23fe4b24
+# __coconut_hash__ = 0xb35a8145
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -33,7 +33,7 @@ from abc import abstractmethod
 from abc import ABCMeta
 
 
-class SupervisedModel(Model):
+class GeneralSupervisedModel(Model):
     """
 # Inteface
 * `inputs : SupervisedInputs` -
@@ -44,18 +44,17 @@ class SupervisedModel(Model):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, name, loss="mse", optimizer=tf.train.AdamOptimizer, learning_rate=0.001, **kwargs):
-        super(SupervisedModel, self).__init__(name, **kwargs)
+    def __init__(self, name, optimizer=tf.train.AdamOptimizer, learning_rate=0.001, **kwargs):
+        super(GeneralSupervisedModel, self).__init__(name, **kwargs)
 
-        self._loss_arg = loss
         self._optimizer = optimizer
         self._learning_rate_arg = learning_rate
 
     @return_self
     def build_tensors(self, *args, **kwargs):
-        super(SupervisedModel, self).build_tensors(*args, **kwargs)
+        super(GeneralSupervisedModel, self).build_tensors(*args, **kwargs)
 
-        self.labels = self.get_labels(*args, **kwargs)
+
         self.learning_rate = self.get_learning_rate(*args, **kwargs)
         self.predictions = self.get_predictions(*args, **kwargs)
         self.loss = self.get_loss(*args, **kwargs)
@@ -64,10 +63,6 @@ class SupervisedModel(Model):
         self.summaries = self.get_all_summaries(*args, **kwargs)
 
 
-
-
-    def get_labels(self, *args, **kwargs):
-        return self.inputs.labels
 
     def get_learning_rate(self, *args, **kwargs):
         if hasattr(self.inputs, "learning_rate"):
@@ -142,7 +137,7 @@ class SupervisedModel(Model):
 
             if print_test_info and step % log_interval == 0:
                 loss, score = self.sess.run([self.loss, self.score_tensor], feed_dict=fit_feed)
-                print("loss {}, score {}, at {}".format(loss, score, step))
+                print("loss {}, score {}, at {}".fSupervisedModelormat(loss, score, step))
 
 
 ################
@@ -156,6 +151,18 @@ class SupervisedModel(Model):
 
                 if when(**kwargs):
                     do(**kwargs)
+
+
+class SupervisedModel(GeneralSupervisedModel):
+    """docstring for SupervisedModel."""
+
+    @return_self
+    def build_tensors(self, *args, **kwargs):
+        self.labels = self.get_labels(*args, **kwargs)
+        super(SupervisedModel, self).build_tensors(*args, **kwargs)
+
+    def get_labels(self, inputs, *args, **kwargs):
+        return inputs.labels
 
 
 class SoftmaxClassifier(SupervisedModel):
