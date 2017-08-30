@@ -2,12 +2,15 @@ from .base_class import Base
 from .inputs import GeneralInputs, Inputs
 import tensorflow as tf
 from tfinterface.decorators import return_self, with_graph_as_default, copy_self
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 import os
 from tfinterface import utils
 import numpy as np
 
 class Model(Base):
+
+    __metaclass__ = ABCMeta
+
     def __init__(self, name, graph=None, sess=None, model_path=None, logs_path="logs", seed=None):
         super(Model, self).__init__(name, graph=graph, sess=sess)
 
