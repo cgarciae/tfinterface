@@ -122,7 +122,7 @@ class GeneralSupervisedModel(Model):
 
             if print_test_info and step % log_interval == 0:
                 loss, score = self.sess.run([self.loss, self.score_tensor], feed_dict=fit_feed)
-                print("loss {}, score {}, at {}".fSupervisedModelormat(loss, score, step))
+                print("loss {}, score {}, at {}".format(loss, score, step))
 
 
             ################

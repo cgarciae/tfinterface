@@ -1,4 +1,4 @@
 from .supervised_model import (
-    SupervisedModel, RegressionModel, SigmoidClassifier, SoftmaxClassifier
+    SupervisedModel, RegressionModel, SigmoidClassifier, SoftmaxClassifier, GeneralSupervisedModel
 )
-from .supervised_inputs import SupervisedInputs
+from .supervised_inputs import SupervisedInputs, GeneralSupervisedInputs

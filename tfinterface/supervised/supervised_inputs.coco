@@ -3,25 +3,26 @@ from tfinterface.base import GeneralInputs
 import tensorflow as tf
 
 
-class SupervisedInputs(GeneralInputs):
-    """
-# Inteface
-* `features : Tensor` -
-* `labels : Tensor` -
-* `keep_prob : Tensor` -
-* `training : Tensor` -
-* `global_step : Variable` -
-    """
+class GeneralSupervisedInputs(GeneralInputs):
 
-    def __init__(self, name, features, labels, **kwargs):
+    def __init__(self, name, **kwargs):
 
         training = dict(shape=(), dtype=tf.bool, fit=True, predict=False)
 
-        super(SupervisedInputs, self).__init__(
+        super(GeneralSupervisedInputs, self).__init__(
+            name,
+            training = training,
+            global_step = get_global_step,
+            **kwargs
+        )
+
+class SupervisedInputs(GeneralSupervisedInputs):
+
+    def __init__(self, name, features, labels, **kwargs):
+
+        super(GeneralSupervisedInputs, self).__init__(
             name,
             features = features,
             labels = labels,
-            training = training,
-            global_step = get_global_step,
             **kwargs
         )
