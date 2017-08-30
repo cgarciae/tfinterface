@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x29e4d3a6
+# __coconut_hash__ = 0xe7d99686
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -521,6 +521,7 @@ from abc import abstractproperty
 
 
 class Base(object):
+
     __metaclass__ = ABCMeta
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xbdc0212
+# __coconut_hash__ = 0xfe4a3a75
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -631,13 +631,13 @@ class GeneralSupervisedModel(Model):
 
             if print_test_info and step % log_interval == 0:
                 loss, score = self.sess.run([self.loss, self.score_tensor], feed_dict=fit_feed)
-                print("loss {}, score {}, at {}".format(loss, score, step))
+                print("loss {}, score {}, at {}".f(loss, score, step))
 
 
 ################
 # on_train
 ################
-            kwargs = dict(step=step, loss=loss, score=score)
+            kwargs = dict(step=step)
 
             for command in on_train:
                 when = command.get("when", lambda **kwargs: True)
