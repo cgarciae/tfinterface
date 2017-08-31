@@ -122,7 +122,7 @@ class GeneralSupervisedModel(Model):
 
             if print_test_info and step % log_interval == 0:
                 loss, score = self.sess.run([self.loss, self.score_tensor], feed_dict=fit_feed)
-                print("loss {}, score {}, at {}".f(loss, score, step))
+                print("loss {}, score {}, at {}".format(loss, score, step))
 
 
             ################
@@ -204,23 +204,20 @@ class RegressionModel(SupervisedModel):
     """docstring for SoftmaxClassifier."""
 
     def __init__(self, *args, **kwargs):
-        loss = kwargs.pop("loss", "mse")
-
-        if loss == "mse":
-            loss = lambda error: tf.nn.l2_loss(error) * 2
-
-        elif loss == "huber":
-            loss = huber_loss
-
-        self._loss_fn = loss
+        self._loss = kwargs.pop("loss", "mse")
 
         super(RegressionModel, self).__init__(*args, **kwargs)
 
 
 
     def get_loss(self, *args, **kwargs):
-        error = self.predictions - self.labels
-        return self._loss_fn(error) |> tf.reduce_mean
+
+        if self._loss == "mse":
+            return tf.squared_difference(self.predictions, self.labels) |> tf.reduce_mean
+
+
+        elif self._loss == "huber":
+            return huber_loss(self.predictions - self.labels) |> tf.reduce_mean
 
 
     def get_score_tensor(self, *args, **kwargs):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xfe4a3a75
+# __coconut_hash__ = 0xb223ca9b
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -631,7 +631,7 @@ class GeneralSupervisedModel(Model):
 
             if print_test_info and step % log_interval == 0:
                 loss, score = self.sess.run([self.loss, self.score_tensor], feed_dict=fit_feed)
-                print("loss {}, score {}, at {}".f(loss, score, step))
+                print("loss {}, score {}, at {}".format(loss, score, step))
 
 
 ################
@@ -705,23 +705,20 @@ class RegressionModel(SupervisedModel):
     """docstring for SoftmaxClassifier."""
 
     def __init__(self, *args, **kwargs):
-        loss = kwargs.pop("loss", "mse")
-
-        if loss == "mse":
-            loss = lambda error: tf.nn.l2_loss(error) * 2
-
-        elif loss == "huber":
-            loss = huber_loss
-
-        self._loss_fn = loss
+        self._loss = kwargs.pop("loss", "mse")
 
         super(RegressionModel, self).__init__(*args, **kwargs)
 
 
 
     def get_loss(self, *args, **kwargs):
-        error = self.predictions - self.labels
-        return (tf.reduce_mean)(self._loss_fn(error))
+
+        if self._loss == "mse":
+            return (tf.reduce_mean)(tf.squared_difference(self.predictions, self.labels))
+
+
+        elif self._loss == "huber":
+            return (tf.reduce_mean)(huber_loss(self.predictions - self.labels))
 
 
     def get_score_tensor(self, *args, **kwargs):
