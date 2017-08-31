@@ -20,7 +20,7 @@ class SupervisedInputs(GeneralSupervisedInputs):
 
     def __init__(self, name, features, labels, **kwargs):
 
-        super(GeneralSupervisedInputs, self).__init__(
+        super(SupervisedInputs, self).__init__(
             name,
             features = features,
             labels = labels,
