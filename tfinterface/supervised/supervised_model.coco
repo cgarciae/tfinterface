@@ -58,10 +58,15 @@ class GeneralSupervisedModel(Model):
     def get_score_tensor(self, *args, **kwargs):
         pass
 
+
+    def get_train_variables(self, graph_keys=tf.GraphKeys.TRAINABLE_VARIABLES, scope=None):
+        return tf.get_collection(graph_keys, scope=scope)
+
     def get_update(self, *args, **kwargs):
         return self._optimizer(self.learning_rate).minimize(
             self.loss,
-            global_step = self.inputs.global_step
+            global_step = self.inputs.global_step,
+            var_list = self.get_train_variables()
         )
 
     def get_all_summaries(self, *args, **kwargs):
