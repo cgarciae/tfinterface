@@ -68,7 +68,21 @@ class Model(Base):
 
 
     @abstractmethod
-    def predict(self, *args, **kwargs): pass
+    def predict(self, *args, **kwargs):
+        pass
+
+    def run(self, tensors, **kwargs):
+        
+        if hasattr(tensors, "__iter__"):
+            tensors = [ getattr(self, tensor) for tensor in tensors ]
+        elif isinstance(tensors, dict):
+            tensors = { key: getattr(self, tensor) for key, tensor in tensors.items() }
+        else:
+            tensors = getattr(self, tensors)
+
+        feed = self.inputs.predict_feed(**kwargs)
+
+        return self.sess.run(tensors, feed_dict = feed)
 
 
     def batch_predict(self, generator, print_fn=None, **kwargs):
