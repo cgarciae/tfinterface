@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x977c9f41
+# __coconut_hash__ = 0x20548604
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -542,21 +542,22 @@ class Model(Base):
 
     @return_self
     @with_graph_as_default
-    def initialize(self, restore=False, model_path=None):
+    def initialize(self, restore=False, model_path=None, var_list=None):
         if not restore:
             self.sess.run(tf.global_variables_initializer())
         else:
-            var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
             model_path = (os.path.abspath)((self.model_path if not model_path else model_path))
-
-            tf.train.Saver().restore(self.sess, model_path)
+            tf.train.Saver(var_list=var_list).restore(self.sess, model_path)
 
     @return_self
     @with_graph_as_default
-    def save(self, model_path=None):
+    def save(self, model_path=None, var_list=None, only_trainable=False):
+        if not only_trainable and not var_list:
+            var_list = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+
         model_path = (os.path.abspath)((self.model_path if not model_path else model_path))
         utils.make_dirs_for_path(model_path)
-        tf.train.Saver().save(self.sess, model_path)
+        tf.train.Saver(var_list=var_list).save(self.sess, model_path)
 
     @with_graph_as_default
     def get_variables(self, graph_keys=tf.GraphKeys.TRAINABLE_VARIABLES, scope=None):
