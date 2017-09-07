@@ -35,7 +35,7 @@ class Model(Base):
     @return_self
     @with_graph_as_default
     def save(self, model_path=None, var_list = None, only_trainable = False):
-        if not only_trainable and not var_list:
+        if only_trainable and not var_list:
             var_list = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
 
         model_path = (self.model_path if not model_path else model_path) |> os.path.abspath

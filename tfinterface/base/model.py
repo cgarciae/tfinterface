@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x20548604
+# __coconut_hash__ = 0xc3ca915a
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -552,7 +552,7 @@ class Model(Base):
     @return_self
     @with_graph_as_default
     def save(self, model_path=None, var_list=None, only_trainable=False):
-        if not only_trainable and not var_list:
+        if only_trainable and not var_list:
             var_list = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
 
         model_path = (os.path.abspath)((self.model_path if not model_path else model_path))
