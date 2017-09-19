@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xca14edb5
+# __coconut_hash__ = 0x25bc2908
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -209,7 +209,7 @@ class CustomRunner(object):
     This class manages the the background threads needed to fill
         a queue full of data.
     """
-    def __init__(self, inputs, queued, batch_size=64, capacity=2000, min_after_dequeue=1000, **queue_ops):
+    def __init__(self, inputs, queued, batch_size=64, capacity=2000, min_after_dequeue=1000, **random_shuffle_queue_ops):
         self.inputs = inputs
 
         names = names = queued.keys()
@@ -224,7 +224,7 @@ class CustomRunner(object):
 
 # The actual queue of data. The queue contains a vector for
 # the mnist features, and a scalar label.
-        self.queue = tf.RandomShuffleQueue(capacity, min_after_dequeue, dtypes, shapes=shapes, names=names, **queue_ops)
+        self.queue = tf.RandomShuffleQueue(capacity, min_after_dequeue, dtypes, shapes=shapes, names=names, **random_shuffle_queue_ops)
 
 # The symbolic operation to add data to the queue
 # we could do some preprocessing here or do it in numpy. In this example
