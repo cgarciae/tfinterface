@@ -31,7 +31,7 @@ def pretty_time_from(t0):
     m = s / 60
     s -= 60 * m
 
-    return h, m, s
+    return int(h), int(m), int(s)
 
 
 def random_batch_generator(*datas, **kwargs):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe25f6f9e
+# __coconut_hash__ = 0xe7ef1064
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -55,7 +55,7 @@ def pretty_time_from(t0):
     m = s / 60
     s -= 60 * m
 
-    return h, m, s
+    return int(h), int(m), int(s)
 
 
 def random_batch_generator(*datas, **kwargs):
