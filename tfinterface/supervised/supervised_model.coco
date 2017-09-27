@@ -1,12 +1,14 @@
 import tensorflow as tf
 from tfinterface.base import Model
 from tfinterface.metrics import r2_score, sigmoid_score, softmax_score
-from tfinterface.utils import huber_loss
+from tfinterface.utils import huber_loss, pretty_time_from
 import cytoolz as cz
 import itertools as it
 from tfinterface.decorators import return_self, with_graph_as_default, copy_self
 from .supervised_inputs import SupervisedInputs
 from abc import abstractmethod, ABCMeta
+from datetime import datetime
+
 
 
 class GeneralSupervisedModel(Model):
@@ -113,6 +115,8 @@ class GeneralSupervisedModel(Model):
 
         data_generator = data_generator |> cz.take$(epochs)
 
+        _t0 = datetime.now()
+
         for step, batch_feed_data in enumerate(data_generator):
 
             fit_feed = self.inputs.fit_feed(**batch_feed_data)
@@ -126,8 +130,9 @@ class GeneralSupervisedModel(Model):
 
 
             if print_test_info and step % log_interval == 0:
+                hours, mins, secs = pretty_time_from(_t0)
                 loss, score = self.sess.run([self.loss, self.score_tensor], feed_dict=fit_feed)
-                print("loss {}, score {}, at {}".format(loss, score, step))
+                print("loss {}, score {}, step {}, elapsed time {}:{}:{}".format(loss, score, step, hours, mins, secs))
 
 
             ################

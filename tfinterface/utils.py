@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x9bf91edc
+# __coconut_hash__ = 0xdc286c2
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -20,6 +20,7 @@ _coconut_sys.path.remove(_coconut_file_path)
 import tensorflow as tf
 import numpy as np
 import os
+from datetime import datetime
 
 class Required(object):
     pass
@@ -38,6 +39,23 @@ TENSOR = RequiredTensor()
 ENV = RequiredEnvironment()
 EXPERIENCEBUFFER = RequiredExperienceBuffer()
 TRAINER = RequiredTrainer()
+
+
+
+
+def pretty_time_from(t0):
+
+    delta = datetime.now() - t0
+
+    s = delta.seconds
+
+    h = s / 3600
+    s -= 3600 * h
+
+    m = s / 60
+    s -= 60 * m
+
+    return h, m, s
 
 
 def random_batch_generator(*datas, **kwargs):

@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import os
+from datetime import datetime
 
 class Required(object): pass
 class RequiredTensor(Required): pass
@@ -14,6 +15,23 @@ TENSOR = RequiredTensor()
 ENV = RequiredEnvironment()
 EXPERIENCEBUFFER = RequiredExperienceBuffer()
 TRAINER = RequiredTrainer()
+
+
+
+
+def pretty_time_from(t0):
+
+    delta = datetime.now() - t0
+
+    s = delta.seconds
+
+    h = s / 3600
+    s -= 3600 * h
+
+    m = s / 60
+    s -= 60 * m
+
+    return h, m, s
 
 
 def random_batch_generator(*datas, **kwargs):
@@ -67,7 +85,7 @@ See: https://en.wikipedia.org/wiki/Huber_loss
 
 def make_dirs_for_path(path):
     dirname = os.path.dirname(path)
-    
+
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x82bb66cf
+# __coconut_hash__ = 0xd100356f
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -23,6 +23,7 @@ from tfinterface.metrics import r2_score
 from tfinterface.metrics import sigmoid_score
 from tfinterface.metrics import softmax_score
 from tfinterface.utils import huber_loss
+from tfinterface.utils import pretty_time_from
 import cytoolz as cz
 import itertools as it
 from tfinterface.decorators import return_self
@@ -31,6 +32,8 @@ from tfinterface.decorators import copy_self
 from .supervised_inputs import SupervisedInputs
 from abc import abstractmethod
 from abc import ABCMeta
+from datetime import datetime
+
 
 
 class GeneralSupervisedModel(Model):
@@ -130,6 +133,8 @@ class GeneralSupervisedModel(Model):
 
         data_generator = (_coconut.functools.partial(cz.take, epochs))(data_generator)
 
+        _t0 = datetime.now()
+
         for step, batch_feed_data in enumerate(data_generator):
 
             fit_feed = self.inputs.fit_feed(**batch_feed_data)
@@ -140,8 +145,9 @@ class GeneralSupervisedModel(Model):
 
 
             if print_test_info and step % log_interval == 0:
+                hours, mins, secs = pretty_time_from(_t0)
                 loss, score = self.sess.run([self.loss, self.score_tensor], feed_dict=fit_feed)
-                print("loss {}, score {}, at {}".format(loss, score, step))
+                print("loss {}, score {}, step {}, elapsed time {}:{}:{}".format(loss, score, step, hours, mins, secs))
 
 
 ################
