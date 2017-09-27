@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x82cd08d1
+# __coconut_hash__ = 0xce6893fa
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -116,4 +116,4 @@ class Model(Base):
             if print_fn:
                 print_fn(batch)
 
-        return np.concatenate(preds_list, axis=0)
+        return preds_list

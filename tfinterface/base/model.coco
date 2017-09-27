@@ -100,4 +100,4 @@ class Model(Base):
             if print_fn:
                 print_fn(batch)
 
-        return np.concatenate(preds_list, axis=0)
+        return preds_list
