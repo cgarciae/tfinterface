@@ -23,7 +23,7 @@ def pretty_time_from(t0):
 
     delta = datetime.now() - t0
 
-    s = delta.seconds
+    s = int(delta.seconds)
 
     h = s / 3600
     s -= 3600 * h
