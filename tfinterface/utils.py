@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6243614f
+# __coconut_hash__ = 0xea89d9b8
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -40,10 +40,6 @@ ENV = RequiredEnvironment()
 EXPERIENCEBUFFER = RequiredExperienceBuffer()
 TRAINER = RequiredTrainer()
 
-
-t0 = datetime.now()
-
-pretty_time_from(t0)
 
 def pretty_time_from(t0):
 
