@@ -23,13 +23,13 @@ def pretty_time_from(t0):
 
     s = delta.seconds
 
-    h = s / 3600
+    h = int(s / 3600)
     s -= 3600 * h
 
-    m = s / 60
+    m = int(s / 60)
     s -= 60 * m
 
-    return int(h), int(m), int(s)
+    return h, m, s
 
 
 def random_batch_generator(*datas, **kwargs):
