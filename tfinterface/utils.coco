@@ -17,7 +17,9 @@ EXPERIENCEBUFFER = RequiredExperienceBuffer()
 TRAINER = RequiredTrainer()
 
 
+t0 = datetime.now()
 
+pretty_time_from(t0)
 
 def pretty_time_from(t0):
 
