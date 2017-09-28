@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xea89d9b8
+# __coconut_hash__ = 0xd56f32f2
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -45,7 +45,7 @@ def pretty_time_from(t0):
 
     delta = datetime.now() - t0
 
-    s = int(delta.seconds)
+    s = delta.seconds
 
     h = s / 3600
     s -= 3600 * h
