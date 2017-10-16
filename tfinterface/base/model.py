@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xce6893fa
+# __coconut_hash__ = 0x16c86199
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -29,6 +29,7 @@ from abc import ABCMeta
 import os
 from tfinterface import utils
 import numpy as np
+ModeKeys = tf.estimator.ModeKeys
 
 class Model(Base):
 
@@ -117,3 +118,9 @@ class Model(Base):
                 print_fn(batch)
 
         return preds_list
+
+    @with_graph_as_default
+    @copy_self
+    def __call__(self, *args, **kwargs):
+        self._mode = kwargs.pop("mode", ModeKeys.TRAIN)
+        return super(Model, self).__call__(*args, **kwargs)

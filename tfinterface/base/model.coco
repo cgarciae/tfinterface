@@ -6,6 +6,7 @@ from abc import abstractmethod, ABCMeta
 import os
 from tfinterface import utils
 import numpy as np
+ModeKeys = tf.estimator.ModeKeys
 
 class Model(Base):
 
@@ -101,3 +102,9 @@ class Model(Base):
                 print_fn(batch)
 
         return preds_list
+
+    @with_graph_as_default
+    @copy_self
+    def __call__(self, *args, **kwargs):
+        self._mode = kwargs.pop("mode", ModeKeys.TRAIN)
+        return super(Model, self).__call__(*args, **kwargs)

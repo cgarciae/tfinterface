@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd100356f
+# __coconut_hash__ = 0x49a102f4
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -33,7 +33,7 @@ from .supervised_inputs import SupervisedInputs
 from abc import abstractmethod
 from abc import ABCMeta
 from datetime import datetime
-
+ModeKeys = tf.estimator.ModeKeys
 
 
 class GeneralSupervisedModel(Model):
@@ -57,13 +57,16 @@ class GeneralSupervisedModel(Model):
     def build_tensors(self, *args, **kwargs):
         super(GeneralSupervisedModel, self).build_tensors(*args, **kwargs)
 
-
         self.learning_rate = self.get_learning_rate(*args, **kwargs)
         self.predictions = self.get_predictions(*args, **kwargs)
-        self.loss = self.get_loss(*args, **kwargs)
-        self.score_tensor = self.get_score_tensor(*args, **kwargs)
-        self.update = self.get_update(*args, **kwargs)
-        self.summaries = self.get_all_summaries(*args, **kwargs)
+
+        if self._mode in [ModeKeys.EVAL, ModeKeys.TRAIN]:
+            self.loss = self.get_loss(*args, **kwargs)
+            self.score_tensor = self.get_score_tensor(*args, **kwargs)
+
+        if self._mode == ModeKeys.TRAIN:
+            self.update = self.get_update(*args, **kwargs)
+            self.summaries = self.get_all_summaries(*args, **kwargs)
 
 
 
