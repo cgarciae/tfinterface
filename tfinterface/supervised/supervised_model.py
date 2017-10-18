@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x49a102f4
+# __coconut_hash__ = 0xecde4767
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -123,7 +123,7 @@ class GeneralSupervisedModel(Model):
 
     @with_graph_as_default
     @return_self
-    def fit(self, epochs=2000, data_generator=None, log_summaries=False, log_interval=20, print_test_info=False, writer_kwargs={}, on_train=[]):
+    def fit(self, epochs=2000, data_generator=None, log_summaries=False, dataset_length=1, batch_size=1, log_interval=20, print_test_info=False, writer_kwargs={}, on_train=[]):
         if log_summaries and not hasattr(self, "writer"):
             self.writer = tf.summary.FileWriter(self.logs_path, graph=self.graph, **writer_kwargs)
 
@@ -134,7 +134,11 @@ class GeneralSupervisedModel(Model):
 #generator of empty dicts
             data_generator = it.repeat({})
 
-        data_generator = (_coconut.functools.partial(cz.take, epochs))(data_generator)
+        iterations = (int)((float(dataset_length) / float(batch_size)) * epochs)
+        data_generator = (_coconut.functools.partial(cz.take, iterations))(data_generator)
+
+        if print_test_info:
+            (print)("{} EPOCHS = {} ITERATIONS".format(epochs, iterations))
 
         _t0 = datetime.now()
 
