@@ -28,8 +28,20 @@ def conv2d_batch_norm(*args, **kwargs):
 
         return activation(net) if activation else net
 
+def conv1d_batch_norm(*args, **kwargs):
+
+    name = kwargs.pop("name", None)
+    activation = kwargs.pop("activation", None)
+    batch_norm = kwargs.pop("batch_norm", {})
+
+    with tf.variable_scope(name, default_name="Conv1dBatchNorm"):
+        net = tf.layers.conv1d(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **batch_norm)
+
+        return activation(net) if activation else net
+
 #####################################
-# fire
+# fire2d
 #####################################
 def fire(inputs, squeeze_filters, expand_1x1_filters, expand_3x3_filters, **kwargs):
 
@@ -61,6 +73,44 @@ def fire_batch_norm(inputs, squeeze_filters, expand_1x1_filters, expand_3x3_filt
         expand_3x3 = conv2d_batch_norm(squeeze, expand_3x3_filters, [3, 3], **kwargs)
 
         return tf.concat([expand_1x1, expand_3x3], axis=3)
+
+fire2d = fire
+fire2d_batch_norm = fire_batch_norm
+
+#####################################
+# fire1d
+#####################################
+def fire1d(inputs, squeeze_filters, expand_1x1_filters, expand_3x3_filters, **kwargs):
+
+    name = kwargs.pop("name", None)
+
+    with tf.variable_scope(name, default_name="Fire1D"):
+        # squeeze
+        squeeze = tf.layers.conv1d(inputs, squeeze_filters, [1], **kwargs)
+
+        # expand
+        kwargs["padding"] = "same"
+        expand_1x1 = tf.layers.conv1d(squeeze, expand_1x1_filters, [1], **kwargs)
+        expand_3x3 = tf.layers.conv1d(squeeze, expand_3x3_filters, [3], **kwargs)
+
+        return tf.concat([expand_1x1, expand_3x3], axis=2)
+
+
+def fire1d_batch_norm(inputs, squeeze_filters, expand_1x1_filters, expand_3x3_filters, **kwargs):
+
+    name = kwargs.pop("name", None)
+
+    with tf.variable_scope(name, default_name="Fire1DBatchNorm"):
+        # squeeze
+        squeeze = conv1d_batch_norm(inputs, squeeze_filters, [1], **kwargs)
+
+        # expand
+        kwargs["padding"] = "same"
+        expand_1x1 = conv1d_batch_norm(squeeze, expand_1x1_filters, [1], **kwargs)
+        expand_3x3 = conv1d_batch_norm(squeeze, expand_3x3_filters, [3], **kwargs)
+
+        return tf.concat([expand_1x1, expand_3x3], axis=2)
+
 
 
 #####################################
