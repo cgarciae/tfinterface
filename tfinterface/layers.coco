@@ -1,4 +1,5 @@
 import tensorflow as tf
+import itertools
 
 #####################################
 # batch_norm
@@ -272,3 +273,56 @@ if __name__ == '__main__':
 
     print(e)
     print(sess.run(e, feed_dict={training: True}))
+
+
+#####################################
+# relation
+#####################################
+
+def relation_network(net, dense_fn, *args, **kwargs):
+    # get kwargs
+    name = kwargs.pop("name", None)
+    reduce_fn = kwargs.pop("reduce_fn", tf.reduce_sum)
+
+    # get network shape
+    shape = [ int(d) for d in net.get_shape()]
+
+    with tf.name_scope(name, default_name="RelationNetwork"):
+
+        if len(shape) > 2:
+            # get object properties
+            n_objects = np.prod(shape[1:-1])
+            object_length = shape[-1]
+
+            # get objects tensor
+            objects = tf.reshape(net, shape=(-1, n_objects, object_length))
+
+            # extract all pair of objects
+            pairs = itertools.product(range(n_objects), range(n_objects))
+            pairs = ( (objects[:, a, :], objects[:, b, :]) for a, b in pairs )
+            pairs = ( tf.concat([a, b], axis = 1) for a, b in pairs )
+            pairs = list(pairs)
+
+            # get paris properties
+            n_pairs = len(pairs)
+
+            # fuse paris into pairs tensor
+            net = tf.concat(pairs, axis = 0)
+
+            # construct pairs net
+            net = dense_fn(net, *args, **kwargs)
+
+            # count relations
+            n_relations = net.get_shape()[-1]
+            n_relations = int(n_relations)
+
+            # reshape to fix batch dimension
+            net = tf.reshape(net, shape = (-1, n_pairs, n_relations))
+
+            # reduce to sum or average along the pairs dimension
+            net = reduce_fn(net, axis = 1)
+
+            return net
+
+        else:
+            raise NotImplementedError("Tensors with dims <= 2 not supported for now, got {}".format(len(shape)))
