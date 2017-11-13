@@ -1,5 +1,6 @@
 import tensorflow as tf
 import itertools
+import numpy as np
 
 #####################################
 # batch_norm
@@ -256,23 +257,7 @@ def ensemble_dropout(networks, **kwargs):
     return networks |> map$(layer_dropout$(?, **kwargs)) |> list
 
 
-if __name__ == '__main__':
 
-    sess = tf.Session()
-
-    training = tf.placeholder(tf.bool, shape=())
-    x = tf.random_uniform(shape=(16, 3, 2))
-
-
-    # f = fire(x, 32, 64, 64, activation=tf.nn.relu)
-    # fb = fire_batch_norm(x, 32, 64, 64, activation=tf.nn.relu, batch_norm=dict(training=True))
-    # print(f)
-    # print(fb)
-
-    e = ensemble_dropout([x], rate = 0.5, training=training)
-
-    print(e)
-    print(sess.run(e, feed_dict={training: True}))
 
 
 #####################################
@@ -285,7 +270,7 @@ def relation_network(net, dense_fn, *args, **kwargs):
     reduce_fn = kwargs.pop("reduce_fn", tf.reduce_sum)
 
     # get network shape
-    shape = [ int(d) for d in net.get_shape()]
+    shape = [-1] + [ int(d) for d in net.get_shape()[1:] ]
 
     with tf.name_scope(name, default_name="RelationNetwork"):
 
@@ -303,10 +288,10 @@ def relation_network(net, dense_fn, *args, **kwargs):
             pairs = ( tf.concat([a, b], axis = 1) for a, b in pairs )
             pairs = list(pairs)
 
-            # get paris properties
+            # get pairs properties
             n_pairs = len(pairs)
 
-            # fuse paris into pairs tensor
+            # fuse pairs into pairs tensor
             net = tf.concat(pairs, axis = 0)
 
             # construct pairs net
@@ -326,3 +311,22 @@ def relation_network(net, dense_fn, *args, **kwargs):
 
         else:
             raise NotImplementedError("Tensors with dims <= 2 not supported for now, got {}".format(len(shape)))
+
+
+if __name__ == '__main__':
+
+    sess = tf.Session()
+
+    training = tf.placeholder(tf.bool, shape=())
+    x = tf.random_uniform(shape=(16, 3, 2))
+
+
+    # f = fire(x, 32, 64, 64, activation=tf.nn.relu)
+    # fb = fire_batch_norm(x, 32, 64, 64, activation=tf.nn.relu, batch_norm=dict(training=True))
+    # print(f)
+    # print(fb)
+
+    e = ensemble_dropout([x], rate = 0.5, training=training)
+
+    print(e)
+    print(sess.run(e, feed_dict={training: True}))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8a40daae
+# __coconut_hash__ = 0xdac5f94d
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -19,6 +19,7 @@ _coconut_sys.path.remove(_coconut_file_path)
 
 import tensorflow as tf
 import itertools
+import numpy as np
 
 #####################################
 # batch_norm
@@ -304,7 +305,7 @@ def relation_network(net, dense_fn, *args, **kwargs):
     reduce_fn = kwargs.pop("reduce_fn", tf.reduce_sum)
 
 # get network shape
-    shape = [int(d) for d in net.get_shape()]
+    shape = [-1] + [int(d) for d in net.get_shape()[1:]]
 
     with tf.name_scope(name, default_name="RelationNetwork"):
 
