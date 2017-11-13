@@ -18,6 +18,19 @@ def dense_batch_norm(*args, **kwargs):
 
         return activation(net) if activation else net
 
+
+def conv3d_batch_norm(*args, **kwargs):
+
+    name = kwargs.pop("name", None)
+    activation = kwargs.pop("activation", None)
+    batch_norm = kwargs.pop("batch_norm", {})
+
+    with tf.variable_scope(name, default_name="Conv3dBatchNorm"):
+        net = tf.layers.conv3d(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **batch_norm)
+
+        return activation(net) if activation else net
+
 def conv2d_batch_norm(*args, **kwargs):
 
     name = kwargs.pop("name", None)
