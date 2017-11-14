@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xdac5f94d
+# __coconut_hash__ = 0xb07ffd00
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -33,6 +33,19 @@ def dense_batch_norm(*args, **kwargs):
 
     with tf.variable_scope(name, "DenseBatchNorm"):
         net = tf.layers.dense(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **batch_norm)
+
+        return activation(net) if activation else net
+
+
+def conv3d_batch_norm(*args, **kwargs):
+
+    name = kwargs.pop("name", None)
+    activation = kwargs.pop("activation", None)
+    batch_norm = kwargs.pop("batch_norm", {})
+
+    with tf.variable_scope(name, default_name="Conv3dBatchNorm"):
+        net = tf.layers.conv3d(*args, **kwargs)
         net = tf.layers.batch_normalization(net, **batch_norm)
 
         return activation(net) if activation else net
@@ -276,23 +289,7 @@ def ensemble_dropout(networks, **kwargs):
     return (list)((_coconut.functools.partial(map, _coconut_partial(layer_dropout, {}, 1, **kwargs)))(networks))
 
 
-if __name__ == '__main__':
 
-    sess = tf.Session()
-
-    training = tf.placeholder(tf.bool, shape=())
-    x = tf.random_uniform(shape=(16, 3, 2))
-
-
-# f = fire(x, 32, 64, 64, activation=tf.nn.relu)
-# fb = fire_batch_norm(x, 32, 64, 64, activation=tf.nn.relu, batch_norm=dict(training=True))
-# print(f)
-# print(fb)
-
-    e = ensemble_dropout([x], rate=0.5, training=training)
-
-    print(e)
-    print(sess.run(e, feed_dict={training: True}))
 
 
 #####################################
@@ -323,10 +320,10 @@ def relation_network(net, dense_fn, *args, **kwargs):
             pairs = (tf.concat([a, b], axis=1) for a, b in pairs)
             pairs = list(pairs)
 
-# get paris properties
+# get pairs properties
             n_pairs = len(pairs)
 
-# fuse paris into pairs tensor
+# fuse pairs into pairs tensor
             net = tf.concat(pairs, axis=0)
 
 # construct pairs net
@@ -346,3 +343,22 @@ def relation_network(net, dense_fn, *args, **kwargs):
 
         else:
             raise NotImplementedError("Tensors with dims <= 2 not supported for now, got {}".format(len(shape)))
+
+
+if __name__ == '__main__':
+
+    sess = tf.Session()
+
+    training = tf.placeholder(tf.bool, shape=())
+    x = tf.random_uniform(shape=(16, 3, 2))
+
+
+# f = fire(x, 32, 64, 64, activation=tf.nn.relu)
+# fb = fire_batch_norm(x, 32, 64, 64, activation=tf.nn.relu, batch_norm=dict(training=True))
+# print(f)
+# print(fb)
+
+    e = ensemble_dropout([x], rate=0.5, training=training)
+
+    print(e)
+    print(sess.run(e, feed_dict={training: True}))
