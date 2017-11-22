@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x16c86199
+# __coconut_hash__ = 0x5ecb5bd3
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -49,10 +49,13 @@ class Model(Base):
 
     @return_self
     @with_graph_as_default
-    def initialize(self, restore=False, model_path=None, var_list=None):
+    def initialize(self, restore=False, model_path=None, var_list=None, only_in_scope=False):
         if not restore:
             self.sess.run(tf.global_variables_initializer())
         else:
+            if not var_list and only_in_scope:
+                var_list = tf.get_collection(tf.GraphKeys.VARIABLES, self.name)
+
             model_path = (os.path.abspath)((self.model_path if not model_path else model_path))
             tf.train.Saver(var_list=var_list).restore(self.sess, model_path)
 
