@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8948bfda
+# __coconut_hash__ = 0xf85d363
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -31,12 +31,12 @@ from tfinterface import utils
 import numpy as np
 ModeKeys = tf.estimator.ModeKeys
 
-class Model(Base):
+class ModelBase(Base):
 
     __metaclass__ = ABCMeta
 
     def __init__(self, name, graph=None, sess=None, model_path=None, logs_path="logs", seed=None):
-        super(Model, self).__init__(name, graph=graph, sess=sess)
+        super(ModelBase, self).__init__(name, graph=graph, sess=sess)
 
         with self.graph.as_default():
             self.seed = seed
@@ -81,7 +81,7 @@ class Model(Base):
     @return_self
     def build_tensors(self, *args, **kwargs):
         self.inputs = self.get_inputs(*args, **kwargs)
-        super(Model, self).build_tensors(*args, **kwargs)
+        super(ModelBase, self).build_tensors(*args, **kwargs)
 
 
     def get_inputs(self, inputs, *args, **kwargs):
@@ -126,4 +126,10 @@ class Model(Base):
     @copy_self
     def __call__(self, *args, **kwargs):
         self._mode = kwargs.pop("mode", ModeKeys.TRAIN)
-        return super(Model, self).__call__(*args, **kwargs)
+        return super(ModelBase, self).__call__(*args, **kwargs)
+
+
+class Model(ModelBase):
+
+    def predict(self, *args, **kwargs):
+        pass

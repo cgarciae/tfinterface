@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tfinterface.base import Model
+from tfinterface.base import ModelBase
 from tfinterface.metrics import r2_score, sigmoid_score, softmax_score
 from tfinterface.utils import huber_loss, pretty_time_from
 import cytoolz as cz
@@ -11,7 +11,7 @@ from datetime import datetime
 ModeKeys = tf.estimator.ModeKeys
 
 
-class GeneralSupervisedModel(Model):
+class GeneralSupervisedModel(ModelBase):
     """
 # Inteface
 * `inputs : SupervisedInputs` -

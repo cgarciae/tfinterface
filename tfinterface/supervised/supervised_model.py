@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xecde4767
+# __coconut_hash__ = 0xd6435aa2
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -18,7 +18,7 @@ _coconut_sys.path.remove(_coconut_file_path)
 # Compiled Coconut: ------------------------------------------------------
 
 import tensorflow as tf
-from tfinterface.base import Model
+from tfinterface.base import ModelBase
 from tfinterface.metrics import r2_score
 from tfinterface.metrics import sigmoid_score
 from tfinterface.metrics import softmax_score
@@ -36,7 +36,7 @@ from datetime import datetime
 ModeKeys = tf.estimator.ModeKeys
 
 
-class GeneralSupervisedModel(Model):
+class GeneralSupervisedModel(ModelBase):
     """
 # Inteface
 * `inputs : SupervisedInputs` -

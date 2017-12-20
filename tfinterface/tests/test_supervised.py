@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x39d3d2cc
+# __coconut_hash__ = 0x7f6e423a
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -26,7 +26,7 @@ from sklearn.metrics import accuracy_score
 n_classes = 3
 n_features = 2
 
-class Model(SoftmaxClassifier):
+class ModelBase(SoftmaxClassifier):
 
     def get_labels(self, inputs):
 # one hot labels
@@ -47,7 +47,7 @@ def get_templates():
 # inputs
     inputs_t = SupervisedInputs(name="network_name" + "_inputs", graph=graph, sess=sess, features=dict(shape=(None, n_features)), labels=dict(shape=(None,), dtype=tf.uint8))
 
-    model_t = template = Model(name="network_name", graph=graph, sess=sess)
+    model_t = template = ModelBase(name="network_name", graph=graph, sess=sess)
 
     return inputs_t, model_t
 

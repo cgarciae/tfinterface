@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x4d540063
+# __coconut_hash__ = 0x892de794
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -20,4 +20,5 @@ _coconut_sys.path.remove(_coconut_file_path)
 from .base_class import Base
 from .inputs import Inputs
 from .inputs import GeneralInputs
+from .model import ModelBase
 from .model import Model
