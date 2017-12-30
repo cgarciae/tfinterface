@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xf85d363
+# __coconut_hash__ = 0xb01529fa
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -130,6 +130,8 @@ class ModelBase(Base):
 
 
 class Model(ModelBase):
+
+
 
     def predict(self, *args, **kwargs):
         pass

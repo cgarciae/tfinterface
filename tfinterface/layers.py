@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb07ffd00
+# __coconut_hash__ = 0x8745240
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -70,6 +70,44 @@ def conv1d_batch_norm(*args, **kwargs):
 
     with tf.variable_scope(name, default_name="Conv1dBatchNorm"):
         net = tf.layers.conv1d(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **batch_norm)
+
+        return activation(net) if activation else net
+
+
+def conv3d_transpose_batch_norm(*args, **kwargs):
+
+    name = kwargs.pop("name", None)
+    activation = kwargs.pop("activation", None)
+    batch_norm = kwargs.pop("batch_norm", {})
+
+    with tf.variable_scope(name, default_name="Conv3dTransposeBatchNorm"):
+        net = tf.layers.conv3d_transpose(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **batch_norm)
+
+        return activation(net) if activation else net
+
+def conv2d_transpose_batch_norm(*args, **kwargs):
+
+    name = kwargs.pop("name", None)
+    activation = kwargs.pop("activation", None)
+    batch_norm = kwargs.pop("batch_norm", {})
+
+    with tf.variable_scope(name, default_name="Conv2dTransposeBatchNorm"):
+        net = tf.layers.conv2d_transpose(*args, **kwargs)
+        net = tf.layers.batch_normalization(net, **batch_norm)
+
+        return activation(net) if activation else net
+
+
+def conv1d_transpose_batch_norm(*args, **kwargs):
+
+    name = kwargs.pop("name", None)
+    activation = kwargs.pop("activation", None)
+    batch_norm = kwargs.pop("batch_norm", {})
+
+    with tf.variable_scope(name, default_name="Conv1dTransposeBatchNorm"):
+        net = tf.layers.conv1d_transpose(*args, **kwargs)
         net = tf.layers.batch_normalization(net, **batch_norm)
 
         return activation(net) if activation else net
