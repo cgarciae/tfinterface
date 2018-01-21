@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8745240
+# __coconut_hash__ = 0xda59baa9
 
 # Compiled with Coconut version 1.2.3 [Colonel]
 
@@ -20,6 +20,11 @@ _coconut_sys.path.remove(_coconut_file_path)
 import tensorflow as tf
 import itertools
 import numpy as np
+
+#####################################
+# global_average_pooling
+#####################################
+
 
 #####################################
 # batch_norm
