@@ -2,7 +2,7 @@ from __future__ import absolute_import, print_function, division, unicode_litera
 
 import tensorflow as tf
 
-def _create_local_variable(name, shape, collections = None, validate_shape = True, dtype = dtypes.float32):
+def _create_local_variable(name, shape, collections = None, validate_shape = True, dtype = tf.float32):
     """
     Creates a new local variable.
     """
