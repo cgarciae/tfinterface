@@ -52,25 +52,3 @@ def r2_score(predictions, labels):
     R_squared = 1.0 - unexplained_error / total_error
 
     return R_squared
-
-
-def sigmoid_score(predictions, labels):
-
-    predictions_truth = predictions > 0.5
-    labels_truth = labels > 0.5
-
-    equal = tf.equal(predictions_truth, labels_truth)
-
-    score = tf.cast(equal, tf.float32) |> tf.reduce_mean
-
-    return score
-
-
-def softmax_score(predictions, labels):
-
-    labels_argmax = tf.argmax(labels, axis=1)
-    predictions_argmax = tf.argmax(predictions, axis=1)
-
-    score = tf.contrib.metrics.accuracy(predictions_argmax, labels_argmax)
-
-    return score
