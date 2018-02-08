@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tfinterface.base import ModelBase
-from tfinterface.metrics import r2_score, sigmoid_score, softmax_score
+from tfinterface.metrics import r2_score
 from tfinterface.utils import huber_loss, pretty_time_from
 import cytoolz as cz
 import itertools as it
