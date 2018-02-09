@@ -39,7 +39,7 @@ def streaming_confusion_matrix(labels, predictions, weights=None, num_classes=No
     # Create the update op for doing a "+=" accumulation on the batch
     update_op = confusion.assign(confusion + batch_confusion)
 
-    return confusion, update_op
+    return tf.identity(confusion), update_op
 
 def r2_score(predictions, labels):
 
