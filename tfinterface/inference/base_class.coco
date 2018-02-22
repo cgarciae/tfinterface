@@ -1,0 +1,27 @@
+import tensorflow as tf
+
+class Inference(object):
+    """ Inference class to abstract evaluation """
+    def __init__(self, input_fn, model_fn, model_dir, params, sess = None):
+        self.sess = sess
+        self.input_fn = input_fn
+        self.model_fn = model_fn
+        self.model_dir = model_dir
+        self.params = params
+        self.features = self.input_fn()
+
+        if isinstance(self.features, tuple) and len(self.features) == 2:
+            self.features, _ = self.features
+
+        spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, self.params)
+        self.predictions = spec.predictions()
+
+    def predict(self, **kargs):
+        if self.sess is None:
+            self.sess = tf.Session()
+            saver = tf.train.Saver()
+            path = tf.train.latest_checkpoint(self.model_dir)
+            saver.restore(self.sess, path)
+        feed_dict = {key: kargs[key] for key in self.features}
+        return self.sess.run(predictions, feed_dict = feed_dict)
+
