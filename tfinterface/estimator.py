@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-class Inference(object):
+class CheckpointPredictor(object):
     """ Inference class to abstract evaluation """
     def __init__(self, input_fn, model_fn, model_dir, params, sess = None):
         self.sess = sess
@@ -25,3 +25,13 @@ class Inference(object):
         feed_dict = {key: kargs[key] for key in self.features}
         return self.sess.run(predictions, feed_dict = feed_dict)
 
+class UFFGenerator(object):
+    def __init__(self, model_dir, uff_path ):
+
+    def dump(self):
+        try:
+            with open(self.uff_path, x) as f
+
+
+class UFFPredictor(object):
+    def __init__(self, uff_path):
