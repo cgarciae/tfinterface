@@ -14,7 +14,8 @@ class CheckpointPredictor(object):
             self.features, _ = self.features
 
         spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, self.params)
-        self.predictions = spec.predictions()
+
+        self.predictions = spec.predictions
 
     def predict(self, **kargs):
         if self.sess is None:
@@ -22,16 +23,19 @@ class CheckpointPredictor(object):
             saver = tf.train.Saver()
             path = tf.train.latest_checkpoint(self.model_dir)
             saver.restore(self.sess, path)
-        feed_dict = {key: kargs[key] for key in self.features}
-        return self.sess.run(predictions, feed_dict = feed_dict)
+        
+        feed_dict = {self.features[key]: kargs[key] for key in self.features}
 
-class UFFGenerator(object):
-    def __init__(self, model_dir, uff_path ):
+        return self.sess.run(self.predictions, feed_dict = feed_dict)
 
-    def dump(self):
-        try:
-            with open(self.uff_path, x) as f
+# class UFFGenerator(object):
+#     def __init__(self, model_dir, uff_path ):
+#         pass
+
+#     def dump(self):
+#         try:
+#             with open(self.uff_path, x) as f
 
 
-class UFFPredictor(object):
-    def __init__(self, uff_path):
+# class UFFPredictor(object):
+#     def __init__(self, uff_path):
