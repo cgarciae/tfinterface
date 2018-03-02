@@ -5,10 +5,6 @@ import pycuda.autoinit
 import os
 import tensorrt as trt
 
-
-trt.lite.Engine
-
-
 class CheckpointPredictor(object):
     """ Inference class to abstract evaluation """
     def __init__(self, input_fn, model_fn, model_dir, params, sess = None):
@@ -81,7 +77,7 @@ class UFFGenerator(object):
             if not os.path.exists(uff_folder):
                 os.makedirs(uff_folder)
 
-        with open(uff_path, 'w') as f:
+        with open(uff_path, 'wb') as f:
             f.write(uff_model)
 
     
