@@ -1,12 +1,8 @@
 import tensorflow as tf
-import uff
-import pycuda.driver as cuda
-import pycuda.autoinit
+
 import os
-import tensorrt as trt
 
-
-trt.lite.Engine
+import sys
 
 
 class CheckpointPredictor(object):
@@ -46,20 +42,26 @@ class UFFGenerator(object):
         self.model_dir = model_dir
         self.params = params
 
-        self.features = self.input_fn()
+        self.graph = tf.Graph()
 
-        if isinstance(self.features, tuple) and len(self.features) == 2:
-            self.features, _ = self.features
+        with self.graph.as_default():
 
-        spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, self.params)
+            self.features = self.input_fn()
 
-        self.predictions = spec.predictions
+            if isinstance(self.features, tuple) and len(self.features) == 2:
+                self.features, _ = self.features
+
+            spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, self.params)
+
+            self.predictions = spec.predictions
 
 
 
     def dump(self, uff_path, model_outputs):
 
-        with tf.Session() as sess:
+        import uff
+
+        with self.graph.as_default(), tf.Session() as sess:
             saver = tf.train.Saver()
             path = tf.train.latest_checkpoint(self.model_dir)
             saver.restore(sess, path)
@@ -69,25 +71,35 @@ class UFFGenerator(object):
             model_graph = tf.graph_util.convert_variables_to_constants(sess, model_graph, model_outputs)
             model_graph = tf.graph_util.remove_training_nodes(model_graph)
 
+            for elem in model_graph.node:
+                print(elem.name)
+
             uff_model = uff.from_tensorflow(model_graph, model_outputs)
 
-        assert(uff_model)
+            assert(uff_model)
 
-        path_parts = uff_path.split(os.sep)
+            uff_folder = os.path.dirname(uff_path)
 
-        if len(path_parts) > 1:
-            uff_folder = os.path.join(*path_parts[:-1])
-
-            if not os.path.exists(uff_folder):
+            if uff_folder and not os.path.exists(uff_folder):
                 os.makedirs(uff_folder)
 
-        with open(uff_path, 'w') as f:
-            f.write(uff_model)
+            # define mode based on python version
+            if sys.version_info.major > 2:
+                mode = "wb"
+            else:
+                mode = "w"
+            
+            with open(uff_path, mode) as f:
+                f.write(uff_model)
 
     
 
 class UFFPredictor(object):
     def __init__(self, uff_path, input_nodes, output_nodes, **kwargs):
+
+        import pycuda.driver as cuda
+        import pycuda.autoinit
+        import tensorrt as trt
         
         self.engine = trt.lite.Engine(
             framework = "uff", 
