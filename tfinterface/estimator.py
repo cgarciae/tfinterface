@@ -140,7 +140,7 @@ class UFFPredictorV2(object):
                                                   parser=parser,
                                                   max_batch_size=1,
                                                   max_workspace_size= 1 << 30,
-                                                  datatype=trt.infer.DataType.FLOAT
+                                                  # datatype=trt.infer.DataType.FLOAT
                                                   )
 
         self.runtime = trt.infer.create_infer_runtime(self.glogger)
