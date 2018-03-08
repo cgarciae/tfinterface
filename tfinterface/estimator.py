@@ -112,6 +112,61 @@ class UFFPredictor(object):
     def predict(self, *args):
         return self.engine.infer(*args)
 
+class UFFPredictorV2(object):
+    def __init__(self, uff_path, input_nodes, output_nodes, severity):
 
-# class UFFPredictor(object):
-#     def __init__(self, uff_path):
+        import tensorrt as trt
+        import pycuda.driver as cuda
+        import pycuda.autoinit
+        import uff
+
+        SEVERITY = {'ERROR' : trt.infer.LogSeverity.ERROR,
+                    'INFO'  : trt.infer.LogSeverity.INFO,
+                    'INTERNAL_ERROR' : trt.infer.LogSeverity.INTERNAL_ERROR,
+                    'WARNING' : trt.infer.LogSeverity.WARNING}
+
+        self.glogger = trt.infer.ConsoleLogger(SEVERITY.get(severity.upper(), SEVERITY['INFO']))
+
+        self.uff_model = open(uff_path, 'rb').read()
+
+        parser = trt.parsers.uffparser.create_uff_parser()
+        for i, (node, dims) in enumerate(input_nodes.items()):
+            parser.register_input(node, tuple(dims), i)
+        for node in output_nodes:
+            parser.register_output(node)
+
+        self.engine = trt.utils.uff_to_trt_engine(logger=self.glogger,
+                                                  stream=self.uff_model,
+                                                  parser=parser,
+                                                  max_batch_size=1,
+                                                  max_workspace_size= 1 << 30,
+                                                  datatype=trt.infer.DataType.FLOAT
+                                                  )
+
+        self.runtime = trt.infer.create_infer_runtime(self.glogger)
+        self.context = self.engine.create_execution_context()
+
+
+        def infer(self, input_data, output_size, output_shape):
+
+            import numpy as np
+
+            output = np.empty(output_shape, dtype = np.float32)
+
+            d_input  =  cuda.mem_alloc(1 * input_data.size * input_data.dtype.itemsize)
+            d_output =  cuda.mem_alloc(1 * output.size * output.dtype.itemsize)
+            bindings = [int(d_input), int(d_output)]
+            stream = cuda.Stream()
+
+            cuda.memcpy_htod_async(d_input, input_data, stream)
+            self.context.enqueue(1, bindings, stream.handle, None)
+            cuda.memcpy_dhtod_async(output, d_output, stream)
+            stream.synchronize()
+
+            return output
+
+        def __del__(self):
+            self.context.destroy()
+            self.engine.destroy()
+            self.runtime.destroy()
+
