@@ -165,7 +165,7 @@ class UFFPredictorV2(object):
 
         cuda.memcpy_htod_async(d_input, input_data, stream)
         self.context.enqueue(1, bindings, stream.handle, None)
-        cuda.memcpy_dhtod_async(output, d_output, stream)
+        cuda.memcpy_dtoh_async(output, d_output, stream)
         stream.synchronize()
 
         return output
