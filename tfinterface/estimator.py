@@ -150,6 +150,11 @@ class UFFPredictorV2(object):
     def infer(self, input_data, output_shape):
 
         import numpy as np
+        import tensorrt as trt
+        import pycuda.driver as cuda
+        import pycuda.autoinit
+        import uff
+
 
         output = np.empty(output_shape, dtype = np.float32)
 
