@@ -147,26 +147,26 @@ class UFFPredictorV2(object):
         self.context = self.engine.create_execution_context()
 
 
-        def infer(self, input_data, output_shape):
+    def infer(self, input_data, output_shape):
 
-            import numpy as np
+        import numpy as np
 
-            output = np.empty(output_shape, dtype = np.float32)
+        output = np.empty(output_shape, dtype = np.float32)
 
-            d_input  =  cuda.mem_alloc(1 * input_data.size * input_data.dtype.itemsize)
-            d_output =  cuda.mem_alloc(1 * output.size * output.dtype.itemsize)
-            bindings = [int(d_input), int(d_output)]
-            stream = cuda.Stream()
+        d_input  =  cuda.mem_alloc(1 * input_data.size * input_data.dtype.itemsize)
+        d_output =  cuda.mem_alloc(1 * output.size * output.dtype.itemsize)
+        bindings = [int(d_input), int(d_output)]
+        stream = cuda.Stream()
 
-            cuda.memcpy_htod_async(d_input, input_data, stream)
-            self.context.enqueue(1, bindings, stream.handle, None)
-            cuda.memcpy_dhtod_async(output, d_output, stream)
-            stream.synchronize()
+        cuda.memcpy_htod_async(d_input, input_data, stream)
+        self.context.enqueue(1, bindings, stream.handle, None)
+        cuda.memcpy_dhtod_async(output, d_output, stream)
+        stream.synchronize()
 
-            return output
+        return output
 
-        def __del__(self):
-            self.context.destroy()
-            self.engine.destroy()
-            self.runtime.destroy()
+    def __del__(self):
+        self.context.destroy()
+        self.engine.destroy()
+        self.runtime.destroy()
 
