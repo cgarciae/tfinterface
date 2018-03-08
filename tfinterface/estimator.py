@@ -147,7 +147,7 @@ class UFFPredictorV2(object):
         self.context = self.engine.create_execution_context()
 
 
-        def infer(self, input_data, output_size, output_shape):
+        def infer(self, input_data, output_shape):
 
             import numpy as np
 
