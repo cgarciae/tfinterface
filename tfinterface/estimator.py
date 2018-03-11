@@ -22,6 +22,8 @@ class CheckpointPredictor(object):
 
         self.predictions = spec.predictions
 
+        
+
     def predict(self, **kargs):
         if self.sess is None:
             self.sess = tf.Session()
@@ -54,6 +56,9 @@ class UFFGenerator(object):
             spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, self.params)
 
             self.predictions = spec.predictions
+
+            print("PREDICTIONS UFF")
+            print(self.predictions)
 
 
 
