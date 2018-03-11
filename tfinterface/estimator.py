@@ -3,6 +3,7 @@ import tensorflow as tf
 import os
 
 import sys
+from copy import deepcopy
 
 
 class CheckpointPredictor(object):
@@ -18,7 +19,7 @@ class CheckpointPredictor(object):
         if isinstance(self.features, tuple) and len(self.features) == 2:
             self.features, _ = self.features
 
-        spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, self.params)
+        spec = self.model_fn(deepcopy(self.features), None, tf.estimator.ModeKeys.PREDICT, deepcopy(self.params))
 
         self.predictions = spec.predictions
 
