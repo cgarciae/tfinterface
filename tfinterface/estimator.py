@@ -19,7 +19,7 @@ class CheckpointPredictor(object):
         if isinstance(self.features, tuple) and len(self.features) == 2:
             self.features, _ = self.features
 
-        spec = self.model_fn(deepcopy(self.features), None, tf.estimator.ModeKeys.PREDICT, deepcopy(self.params))
+        spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, deepcopy(self.params or {}))
 
         self.predictions = spec.predictions
 
