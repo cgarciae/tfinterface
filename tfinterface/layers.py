@@ -3,28 +3,59 @@
 # __coconut_hash__ = 0xda59baa9
 
 # Compiled with Coconut version 1.2.3 [Colonel]
-
-# Coconut Header: --------------------------------------------------------
-
 from __future__ import print_function, absolute_import, unicode_literals, division
-
-import sys as _coconut_sys, os.path as _coconut_os_path
-_coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
-_coconut_sys.path.insert(0, _coconut_file_path)
-from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_compose, _coconut_pipe, _coconut_starpipe, _coconut_backpipe, _coconut_backstarpipe, _coconut_bool_and, _coconut_bool_or, _coconut_minus, _coconut_map, _coconut_partial
-from __coconut__ import *
-_coconut_sys.path.remove(_coconut_file_path)
-
-# Compiled Coconut: ------------------------------------------------------
 
 import tensorflow as tf
 import itertools
 import numpy as np
 
+
+#####################################
+# flatten
+#####################################
+
+def flatten(net, name = None):
+    dims = net.get_shape().as_list()[1:]
+    last_dim = np.prod(dims)
+    shape = [-1, last_dim]
+    net = tf.reshape(net, shape, name = name)
+
+    return net
+    
+
+
 #####################################
 # global_average_pooling
 #####################################
 
+def global_average_pooling4d(net, keepdims = False, name = None):
+
+    with tf.name_scope("GlobalAveragePooling4D"):
+        net = tf.reduce_mean(net, axis = [1, 2, 3, 4], keepdims = keepdims, name = name)
+
+    return net
+
+def global_average_pooling3d(net, keepdims = False, name = None):
+
+    with tf.name_scope("GlobalAveragePooling3D"):
+        net = tf.reduce_mean(net, axis = [1, 2, 3], keepdims = keepdims, name = name)
+
+    return net
+
+def global_average_pooling2d(net, keepdims = False, name = None):
+
+    with tf.name_scope("GlobalAveragePooling2D"):
+        net = tf.reduce_mean(net, axis = [1, 2], keepdims = keepdims, name = name)
+
+    return net
+
+
+def global_average_pooling1d(net, keepdims = False, name = None):
+
+    with tf.name_scope("GlobalAveragePooling1D"):
+        net = tf.reduce_mean(net, axis = [1], keepdims = keepdims, name = name)
+
+    return net
 
 #####################################
 # batch_norm

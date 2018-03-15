@@ -8,39 +8,110 @@ from copy import deepcopy
 
 class CheckpointPredictor(object):
     """ Inference class to abstract evaluation """
-    def __init__(self, input_fn, model_fn, model_dir, params, sess = None):
-        self.sess = sess
-        self.input_fn = input_fn
+    def __init__(self, serving_input_fn, model_fn, model_dir, params):
+        
+        self.serving_input_fn = serving_input_fn
         self.model_fn = model_fn
         self.model_dir = model_dir
         self.params = params
-        self.features = self.input_fn()
 
-        if isinstance(self.features, tuple) and len(self.features) == 2:
-            self.features, _ = self.features
+        self.graph = tf.Graph()
+        self.sess = None
 
-        spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, deepcopy(self.params or {}))
+        with self.graph.as_default():
 
-        self.predictions = spec.predictions
+            inputs = self.serving_input_fn()
+
+            if isinstance(inputs, tf.estimator.export.ServingInputReceiver):
+                
+                self.features = inputs.features
+                self.receiver_tensors = inputs.receiver_tensors
+            else:
+                self.features = inputs
+                self.receiver_tensors = inputs
+
+            spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, deepcopy(self.params or {}))
+
+            self.predictions = spec.predictions
+
+            self.sess = tf.Session(graph = self.graph)
+            saver = tf.train.Saver()
+            path = tf.train.latest_checkpoint(self.model_dir)
+            saver.restore(self.sess, path)
 
         
 
     def predict(self, **kargs):
-        if self.sess is None:
-            self.sess = tf.Session()
-            saver = tf.train.Saver()
-            path = tf.train.latest_checkpoint(self.model_dir)
-            saver.restore(self.sess, path)
         
-        feed_dict = {self.features[key]: kargs[key] for key in self.features}
+        feed_dict = {self.receiver_tensors[key]: kargs[key] for key in self.receiver_tensors}
 
         return self.sess.run(self.predictions, feed_dict = feed_dict)
 
+    def __del__(self):
+        if self.sess is not None:
+            self.sess.close()
+
+
+class TRTCheckpointPredictor(object):
+    """ Inference class to abstract evaluation """
+    def __init__(self, serving_input_fn, model_fn, model_dir, params, input_nodes, output_nodes, **kwargs):
+        import pycuda.driver as cuda
+        import pycuda.autoinit
+        import tensorrt as trt
+        
+        self.serving_input_fn = serving_input_fn
+        self.model_fn = model_fn
+        self.model_dir = model_dir
+        self.params = params
+        self.input_nodes = input_nodes
+        self.output_nodes = output_nodes
+        self.graph = tf.Graph()
+
+        
+        with self.graph.as_default(), tf.Session(graph = self.graph) as sess:
+
+            inputs = self.serving_input_fn()
+
+            if isinstance(inputs, tf.estimator.export.ServingInputReceiver):
+                
+                self.features = inputs.features
+                self.receiver_tensors = inputs.receiver_tensors
+            else:
+                self.features = inputs
+                self.receiver_tensors = inputs
+
+            spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, deepcopy(self.params or {}))
+
+            self.predictions = spec.predictions
+            
+            # load model
+            saver = tf.train.Saver()
+            path = tf.train.latest_checkpoint(self.model_dir)
+            saver.restore(sess, path)
+
+            # freeze graph
+            model_graph = sess.graph.as_graph_def()
+
+            model_graph = tf.graph_util.convert_variables_to_constants(sess, model_graph, self.output_nodes)
+            model_graph = tf.graph_util.remove_training_nodes(model_graph)
+            
+            # create engine
+            self.engine = trt.lite.Engine(
+                framework = "tf", 
+                stream = model_graph,
+                input_nodes = input_nodes, 
+                output_nodes = output_nodes,
+                **kwargs
+            )
+
+    def predict(self, *args):
+        return self.engine.infer(*args)
+
 class UFFGenerator(object):
 
-    def __init__(self, input_fn, model_fn, model_dir, params, sess = None):
+    def __init__(self, serving_input_fn, model_fn, model_dir, params, sess = None):
         self.sess = sess
-        self.input_fn = input_fn
+        self.serving_input_fn = serving_input_fn
         self.model_fn = model_fn
         self.model_dir = model_dir
         self.params = params
@@ -49,10 +120,15 @@ class UFFGenerator(object):
 
         with self.graph.as_default():
 
-            self.features = self.input_fn()
+            inputs = self.serving_input_fn()
 
-            if isinstance(self.features, tuple) and len(self.features) == 2:
-                self.features, _ = self.features
+            if isinstance(inputs, tf.estimator.export.ServingInputReceiver):
+                
+                self.features = inputs.features
+                self.receiver_tensors = inputs.receiver_tensors
+            else:
+                self.features = inputs
+                self.receiver_tensors = inputs
 
             spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, self.params)
 
