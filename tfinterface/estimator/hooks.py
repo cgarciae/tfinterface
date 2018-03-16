@@ -9,7 +9,7 @@ class BestCheckpointSaver(tf.train.SessionRunHook):
 
         self.target = target if minimize else -target
         self.checkpoint_path = os.path.join(checkpoint_dir, checkpoint_filename)
-        self.best_value = math.inf
+        self.best_value = float("inf")
         self.saver = tf.train.Saver(**kwargs)
 
     def begin(self):
