@@ -34,6 +34,10 @@ class BestCheckpointSaver(tf.train.SessionRunHook):
             self.best_value = target
             tf.logging.info("Found new best model at step {} with value {}".format(step, target))
 
+            checkpoint_path_base = os.path.basename(self.checkpoint_path)
+            if not os.path.exists(checkpoint_path_base):
+                os.makedirs(checkpoint_path_base)
+
             self.saver.save(context.session, self.checkpoint_path, global_step = self.global_step)
 
 
