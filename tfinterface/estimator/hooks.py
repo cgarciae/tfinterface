@@ -1,7 +1,32 @@
 
 import tensorflow as tf
 import math
+import json
 import os
+
+####################
+## functions
+####################
+
+def floyd_metrics_formatter(tags_values):
+    """
+    This functions formats `tf.train.LoggingTensorHook` according to floyd metric logging systems. Usage:
+    ```
+    tf.train.LoggingTensorHook(
+        ...,
+        formatter = ti.estimator.hooks.floyd_metrics_formatter,
+    )
+    ```
+    """
+    tags_values = [ dict(metric = metric, value = float(value)) for metric, value in tags_values.items() ]
+    tags_values = [ json.dumps(tag) for tag in tags_values ]
+
+    return "\n" + "\n".join(tags_values)
+
+
+####################
+## classes
+####################
 
 class BestCheckpointSaver(tf.train.SessionRunHook):
 

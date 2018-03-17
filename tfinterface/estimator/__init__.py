@@ -39,7 +39,9 @@ class CheckpointPredictor(object):
 
             self.sess = tf.Session(graph = self.graph)
             saver = tf.train.Saver()
+            print("AAAA", self.model_dir)
             path = tf.train.latest_checkpoint(self.model_dir)
+            print("BBBB", path)
             saver.restore(self.sess, path)
 
         
