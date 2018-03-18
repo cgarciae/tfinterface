@@ -30,12 +30,16 @@ def floyd_metrics_formatter(tags_values):
 
 class BestCheckpointSaver(tf.train.SessionRunHook):
 
-    def __init__(self, target, checkpoint_dir, skip_n_iters = -1, save_steps = 50, checkpoint_filename = "model.ckpt", minimize = True, max_to_keep = 10, **kwargs):
+    def __init__(self, target, checkpoint_dir, skip_n_iters = -1, save_steps = 50, checkpoint_filename = "model.ckpt", minimize = True, max_to_keep = 10, save_relative_paths = True, **kwargs):
 
+        self.saver = tf.train.Saver(
+            max_to_keep = max_to_keep, 
+            save_relative_paths = save_relative_paths, 
+            **kwargs
+        )
         self.target = target if minimize else -target
         self.checkpoint_path = os.path.join(checkpoint_dir, checkpoint_filename)
         self.best_value = float("inf")
-        self.saver = tf.train.Saver(max_to_keep = max_to_keep, **kwargs)
         self._trigger = False 
         self.save_steps = save_steps
         self.skip_n_iters = skip_n_iters
