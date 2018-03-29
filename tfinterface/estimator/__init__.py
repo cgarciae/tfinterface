@@ -9,52 +9,104 @@ from copy import deepcopy
 from . import hooks
 
 
-class CheckpointPredictor(object):
-    """ Inference class to abstract evaluation """
-    def __init__(self, serving_input_fn, model_fn, model_dir, params):
-        
-        self.serving_input_fn = serving_input_fn
-        self.model_fn = model_fn
-        self.model_dir = model_dir
-        self.params = params
+
+class FrozenGraphPredictor(object):
+
+    def __init__(self, input_names, output_names, frozen_graph_path, input_map_fn = None, **kwargs):
+
+        self.input_names = input_names
+        self.output_names = output_names
+
+        # set name to "" to override the default which is "import"
+        kwargs.setdefault("name", "")
 
         self.graph = tf.Graph()
-        self.sess = None
+
+        with tf.gfile.GFile(frozen_graph_path, "rb") as f:
+            graph_def = tf.GraphDef()
+            graph_def.ParseFromString(f.read())
 
         with self.graph.as_default():
 
-            inputs = self.serving_input_fn()
-
-            if isinstance(inputs, tf.estimator.export.ServingInputReceiver):
-                
-                self.features = inputs.features
-                self.receiver_tensors = inputs.receiver_tensors
-            else:
-                self.features = inputs
-                self.receiver_tensors = inputs
-
-            spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, deepcopy(self.params or {}))
-
-            self.predictions = spec.predictions
+            if input_map_fn is not None:
+                input_map = input_map_fn()
+                kwargs["input_map"] = input_map
 
             self.sess = tf.Session(graph = self.graph)
-            saver = tf.train.Saver()
-            print("AAAA", self.model_dir)
-            path = tf.train.latest_checkpoint(self.model_dir)
-            print("BBBB", path)
-            saver.restore(self.sess, path)
+            tf.import_graph_def(graph_def, **kwargs)
 
         
+    def predict(self, **kwargs):
 
-    def predict(self, **kargs):
-        
-        feed_dict = {self.receiver_tensors[key]: kargs[key] for key in self.receiver_tensors}
-
-        return self.sess.run(self.predictions, feed_dict = feed_dict)
+        return self.sess.run(self.output_names, feed_dict = {
+            self.input_names[name]: kwargs[name] 
+            for name in self.input_names
+        })
 
     def __del__(self):
         if self.sess is not None:
             self.sess.close()
+
+class CheckpointPredictor(object):
+
+    def __init__(self, input_names, output_names, model_dir = None, frozen_graph_path = None, input_map_fn = None, **kwargs):
+
+        self.input_names = input_names
+        self.output_names = output_names
+
+        if not (bool(model_dir) ^ bool(frozen_graph_path)):
+            raise ValueError("Must pass model path or checkpoint path")
+        elif model_dir:
+            frozen_graph_path = tf.train.latest_checkpoint(model_dir)
+            
+            if frozen_graph_path is None:
+                raise ValueError("Checkpoint not found at: {}".format(model_dir))
+
+        meta_path = frozen_graph_path + ".meta"
+
+        self.graph = tf.Graph()
+
+        with self.graph.as_default():
+
+            if input_map_fn is not None:
+                input_map = input_map_fn()
+                kwargs["input_map"] = input_map
+
+            self.sess = tf.Session(graph = self.graph)
+            saver = tf.train.import_meta_graph(meta_path, **kwargs)
+            saver.restore(self.sess, frozen_graph_path)
+
+        
+    def predict(self, **kwargs):
+
+        return self.sess.run(self.output_names, feed_dict = {
+            self.input_names[name]: kwargs[name] 
+            for name in self.input_names
+        })
+
+    def __del__(self):
+        if self.sess is not None:
+            self.sess.close()
+
+
+        
+
+
+class EstimatorPredictor(object):
+
+    def __init__(self, estimator, serving_input_fn):
+        self._predictor = tf.contrib.predictor.from_estimator(estimator, serving_input_fn)
+
+    def predict(self, **kwargs):
+        return self._predictor(kwargs)
+
+class SavedModelPredictor(object):
+
+    def __init__(self, export_dir, **kwargs):
+        self._predictor = tf.contrib.predictor.from_saved_model(export_dir, **kwargs)
+
+    def predict(self, **kwargs):
+        return self._predictor(kwargs)
 
 
 class TRTCheckpointPredictor(object):
@@ -112,74 +164,6 @@ class TRTCheckpointPredictor(object):
     def predict(self, *args):
         return self.engine.infer(*args)
 
-class UFFGenerator(object):
-
-    def __init__(self, serving_input_fn, model_fn, model_dir, params, sess = None):
-        self.sess = sess
-        self.serving_input_fn = serving_input_fn
-        self.model_fn = model_fn
-        self.model_dir = model_dir
-        self.params = params
-
-        self.graph = tf.Graph()
-
-        with self.graph.as_default():
-
-            inputs = self.serving_input_fn()
-
-            if isinstance(inputs, tf.estimator.export.ServingInputReceiver):
-                
-                self.features = inputs.features
-                self.receiver_tensors = inputs.receiver_tensors
-            else:
-                self.features = inputs
-                self.receiver_tensors = inputs
-
-            spec = self.model_fn(self.features, None, tf.estimator.ModeKeys.PREDICT, self.params)
-
-            self.predictions = spec.predictions
-
-            print("PREDICTIONS UFF")
-            print(self.predictions)
-
-
-
-    def dump(self, uff_path, model_outputs):
-
-        import uff
-
-        with self.graph.as_default(), tf.Session() as sess:
-            saver = tf.train.Saver()
-            path = tf.train.latest_checkpoint(self.model_dir)
-            saver.restore(sess, path)
-
-            model_graph = sess.graph.as_graph_def()
-
-            model_graph = tf.graph_util.convert_variables_to_constants(sess, model_graph, model_outputs)
-            model_graph = tf.graph_util.remove_training_nodes(model_graph)
-
-            for elem in model_graph.node:
-                print(elem.name)
-
-            uff_model = uff.from_tensorflow(model_graph, model_outputs)
-
-            assert(uff_model)
-
-            uff_folder = os.path.dirname(uff_path)
-
-            if uff_folder and not os.path.exists(uff_folder):
-                os.makedirs(uff_folder)
-
-            # define mode based on python version
-            if sys.version_info.major > 2:
-                mode = "wb"
-            else:
-                mode = "w"
-            
-            with open(uff_path, mode) as f:
-                f.write(uff_model)
-
-    
 
 class UFFPredictor(object):
     def __init__(self, uff_path, input_nodes, output_nodes, **kwargs):
