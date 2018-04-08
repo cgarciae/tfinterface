@@ -241,7 +241,7 @@ class SavedModelPredictor(object):
     @classmethod
     def get(cls, url, **kwargs):
         hash_name = str(hash(url))
-        model_dir_base = os.path.join("~", ".cache", "tfinterface", "saved_models", hash_name)
+        model_dir_base = os.path.join("/", "tmp", "tfinterface", "saved_models", hash_name)
 
         if not os.path.exists(model_dir_base):
             os.makedirs(model_dir_base)
