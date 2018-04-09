@@ -222,7 +222,7 @@ def fire1d_batch_norm(inputs, squeeze_filters, expand_1x1_filters, expand_3x3_fi
 
 
 #####################################
-# dense_block
+# conv2d_dense_block
 #####################################
 
 def conv2d_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs):
@@ -296,6 +296,81 @@ def conv2d_dense_block(net, growth_rate, n_layers, **kwargs):
     return net
 
 
+
+#####################################
+# conv1d_dense_block
+#####################################
+
+def conv1d_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs):
+
+
+    kwargs.setdefault("kernel_regularizer")
+
+    with tf.variable_scope(None, default_name="Conv1dDenseNetlayer"):
+
+        net = tf.layers.batch_normalization(net, **batch_norm)
+        net = activation(net) if activation else net
+
+        if bottleneck:
+            net = tf.layers.conv1d(net, bottleneck, [1], **kwargs)
+            net = tf.layers.dropout(net, **dropout) if dropout else net
+            net = tf.layers.batch_normalization(net, **batch_norm)
+            net = activation(net) if activation else net
+
+        net = tf.layers.conv1d(net, growth_rate, [3], **kwargs)
+        net = tf.layers.dropout(net, **dropout) if dropout else net
+
+        return net
+
+
+def conv1d_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs):
+
+    filters = int(net.get_shape()[-1])
+
+    if compression:
+        if compression <= 1:
+            filters = int(filters * compression)
+        else:
+            filters = compression
+
+    with tf.variable_scope(None, default_name="TransitionLayer"):
+
+        net = tf.layers.batch_normalization(net, **batch_norm)
+        net = activation(net) if activation else net
+        net = tf.layers.conv1d(net, filters, [1], **kwargs)
+        net = tf.layers.dropout(net, **dropout)
+
+        return net
+
+
+def conv1d_dense_block(net, growth_rate, n_layers, **kwargs):
+    name = kwargs.pop("name", None)
+    bottleneck = kwargs.pop("bottleneck", None)
+    compression = kwargs.pop("compression", None)
+    batch_norm = kwargs.pop("batch_norm", {})
+    dropout = kwargs.pop("dropout", {})
+    activation = kwargs.pop("activation", None)
+    weight_decay = kwargs.pop("weight_decay", None)
+
+    kwargs.setdefault("use_bias", False)
+
+    if weight_decay:
+        kwargs.setdefault("kernel_regularizer", tf.contrib.layers.l2_regularizer(weight_decay))
+        batch_norm.setdefault("beta_regularizer", tf.contrib.layers.l2_regularizer(weight_decay))
+        batch_norm.setdefault("gamma_regularizer", tf.contrib.layers.l2_regularizer(weight_decay))
+
+
+
+    with tf.variable_scope(name, default_name="Conv1dDenseNetBlock"):
+
+        for layers in range(n_layers):
+            layer = conv1d_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs)
+            net = tf.concat([net, layer], axis=2)
+
+        net = conv1d_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs)
+
+    return net
+
 #####################################
 # fc_dense_block
 #####################################
@@ -359,7 +434,7 @@ def fc_dense_block(net, growth_rate, n_layers, **kwargs):
 
 
 
-    with tf.variable_scope(name, default_name="Conv2dDenseNetBlock"):
+    with tf.variable_scope(name, default_name="FCDenseNetBlock"):
 
         for layers in range(n_layers):
             layer = fc_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs)
