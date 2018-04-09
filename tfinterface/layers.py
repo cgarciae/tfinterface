@@ -363,7 +363,7 @@ def fc_dense_block(net, growth_rate, n_layers, **kwargs):
 
         for layers in range(n_layers):
             layer = fc_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs)
-            net = tf.concat([net, layer], axis=3)
+            net = tf.concat([net, layer], axis=1)
 
         if compression:
             net = fc_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs)
