@@ -297,7 +297,7 @@ def conv2d_dense_block(net, growth_rate, n_layers, **kwargs):
 
 
 #####################################
-# dense_fc_block
+# fc_dense_block
 #####################################
 
 def fc_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs):
@@ -326,11 +326,10 @@ def fc_densenet_transition(net, compression, batch_norm, dropout, activation, **
 
     filters = int(net.get_shape()[-1])
 
-    if compression:
-        if compression <= 1:
-            filters = int(filters * compression)
-        else:
-            filters = compression
+    if compression <= 1:
+        filters = int(filters * compression)
+    else:
+        filters = compression
 
     with tf.variable_scope(None, default_name="TransitionLayer"):
 
@@ -366,7 +365,8 @@ def fc_dense_block(net, growth_rate, n_layers, **kwargs):
             layer = fc_densenet_layer(net, growth_rate, bottleneck, batch_norm, dropout, activation, **kwargs)
             net = tf.concat([net, layer], axis=3)
 
-        net = fc_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs)
+        if compression:
+            net = fc_densenet_transition(net, compression, batch_norm, dropout, activation, **kwargs)
 
     return net
 
