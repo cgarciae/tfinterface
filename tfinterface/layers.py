@@ -351,6 +351,7 @@ def conv1d_dense_block(net, growth_rate, n_layers, **kwargs):
     dropout = kwargs.pop("dropout", {})
     activation = kwargs.pop("activation", None)
     weight_decay = kwargs.pop("weight_decay", None)
+    kwargs["padding"] = "SAME"
 
     kwargs.setdefault("use_bias", False)
 
