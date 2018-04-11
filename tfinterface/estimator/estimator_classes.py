@@ -178,7 +178,7 @@ class FrozenGraphPredictor(object):
         hash_name = str(hash(url))
         filename = os.path.basename(url)
 
-        model_dir_base = os.path.join("/", "tmp", "tfinterface", "saved_models", hash_name)
+        model_dir_base = os.path.join("/", "tmp", "tfinterface", "frozen_models", hash_name)
         model_path = os.path.join(model_dir_base, filename)
 
         if not os.path.exists(model_dir_base):
