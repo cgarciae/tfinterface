@@ -186,7 +186,7 @@ class FrozenGraphPredictor(object):
             os.makedirs(model_dir_base)
 
             subprocess.check_call(
-                "gsutil -m cp -R {source_folder}/* {dest_folder}".format(
+                "gsutil -m cp -R {source_folder} {dest_folder}".format(
                     source_folder = url,
                     dest_folder = model_dir_base,
                 ),
