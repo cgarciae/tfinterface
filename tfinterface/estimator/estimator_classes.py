@@ -145,6 +145,7 @@ class FrozenGraphPredictor(object):
 
         self.input_nodes = input_nodes
         self.output_names = output_names
+        self.sess = None
 
         # set name to "" to override the default which is "import"
         kwargs.setdefault("name", "")
@@ -178,7 +179,7 @@ class FrozenGraphPredictor(object):
         hash_name = str(hash(url))
         filename = os.path.basename(url)
 
-        model_dir_base = os.path.join("/", "tmp", "tfinterface", "frozen_models", hash_name)
+        model_dir_base = os.path.join("/", "tmp", "tfinterface", "frozen_graphs", hash_name)
         model_path = os.path.join(model_dir_base, filename)
 
         if not os.path.exists(model_dir_base):
@@ -204,6 +205,7 @@ class CheckpointPredictor(object):
 
         self.input_nodes = input_nodes
         self.output_names = output_names
+        self.sess = None
 
         if not (bool(model_dir) ^ bool(frozen_graph_path)):
             raise ValueError("Must pass model path or checkpoint path")
