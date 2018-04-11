@@ -149,7 +149,7 @@ class FrozenGraphPredictor(object):
         # set name to "" to override the default which is "import"
         kwargs.setdefault("name", "")
 
-        self.graph = tf.Graph() is sess is None else sess.graph
+        self.graph = tf.Graph() if sess is None else sess.graph
 
         with self.graph.as_default():
 
@@ -171,6 +171,28 @@ class FrozenGraphPredictor(object):
             self.input_nodes[name]: kwargs[name] 
             for name in self.input_nodes
         })
+
+    @classmethod
+    def get(cls, input_nodes, output_names, url, **kwargs):
+        
+        hash_name = str(hash(url))
+        filename = os.path.basename(url)
+
+        model_dir_base = os.path.join("/", "tmp", "tfinterface", "saved_models", hash_name)
+        model_path = os.path.join(model_dir_base, filename)
+
+        if not os.path.exists(model_dir_base):
+            os.makedirs(model_dir_base)
+
+            subprocess.check_call(
+                "gsutil -m cp -R {source_folder}/* {dest_folder}".format(
+                    source_folder = url,
+                    dest_folder = model_dir_base,
+                ),
+                stdout = subprocess.PIPE, shell = True,
+            )
+
+        return cls(input_nodes, output_names, model_path, **kwargs)
 
     def __del__(self):
         if self.sess is not None:
