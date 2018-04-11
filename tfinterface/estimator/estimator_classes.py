@@ -141,7 +141,7 @@ class TFTRTFrozenGraphPredictor(object):
 
 class FrozenGraphPredictor(object):
 
-    def __init__(self, input_nodes, output_names, frozen_graph_path, input_map_fn = None, **kwargs):
+    def __init__(self, input_nodes, output_names, frozen_graph_path, input_map_fn = None, sess = None, **kwargs):
 
         self.input_nodes = input_nodes
         self.output_names = output_names
@@ -149,7 +149,7 @@ class FrozenGraphPredictor(object):
         # set name to "" to override the default which is "import"
         kwargs.setdefault("name", "")
 
-        self.graph = tf.Graph()
+        self.graph = tf.Graph() is sess is None else sess.graph
 
         with self.graph.as_default():
 
@@ -161,7 +161,7 @@ class FrozenGraphPredictor(object):
                 input_map = input_map_fn()
                 kwargs["input_map"] = input_map
 
-            self.sess = tf.Session(graph = self.graph)
+            self.sess = tf.Session(graph = self.graph) if sess is None else sess
             tf.import_graph_def(graph_def, **kwargs)
 
         
