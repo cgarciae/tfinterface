@@ -141,7 +141,7 @@ class TFTRTFrozenGraphPredictor(object):
 
 class FrozenGraphPredictor(object):
 
-    def __init__(self, input_nodes, output_names, frozen_graph_path, input_map_fn = None, sess = None, **kwargs):
+    def __init__(self, frozen_graph_path, input_nodes, output_names, input_map_fn = None, sess = None, **kwargs):
 
         self.input_nodes = input_nodes
         self.output_names = output_names
@@ -174,7 +174,7 @@ class FrozenGraphPredictor(object):
         })
 
     @classmethod
-    def get(cls, input_nodes, output_names, url, **kwargs):
+    def get(cls, url, *args , **kwargs):
         
         hash_name = str(hash(url))
         filename = os.path.basename(url)
@@ -193,7 +193,7 @@ class FrozenGraphPredictor(object):
                 stdout = subprocess.PIPE, shell = True,
             )
 
-        return cls(input_nodes, output_names, model_path, **kwargs)
+        return cls(model_path, *args, **kwargs)
 
     def __del__(self):
         if self.sess is not None:
