@@ -9,7 +9,53 @@ import time
 import subprocess
 
 
+class FileGetter(object):
 
+    @classmethod
+    def get(cls, url, *args , **kwargs):
+        
+        hash_name = str(hash(url))
+        filename = os.path.basename(url)
+
+        home_path = os.path.expanduser('~')
+        model_dir_base = os.path.join(home_path, ".local", "tfinterface", "frozen_graphs", hash_name)
+        model_path = os.path.join(model_dir_base, filename)
+
+        if not os.path.exists(model_dir_base):
+            os.makedirs(model_dir_base)
+
+            subprocess.check_call(
+                "gsutil -m cp -R {source_folder} {dest_folder}".format(
+                    source_folder = url,
+                    dest_folder = model_dir_base,
+                ),
+                stdout = subprocess.PIPE, shell = True,
+            )
+
+        return cls(model_path, *args, **kwargs)
+
+
+class FolderGetter(object):
+
+    @classmethod
+    def get(cls, url, **kwargs):
+        hash_name = str(hash(url))
+
+        home_path = os.path.expanduser('~')
+        model_dir_base = os.path.join(home_path, ".local", "tfinterface", "saved_models", hash_name)
+
+        if not os.path.exists(model_dir_base):
+            os.makedirs(model_dir_base)
+
+            subprocess.check_call(
+                "gsutil -m cp -R {source_folder}/* {dest_folder}".format(
+                    source_folder = url,
+                    dest_folder = model_dir_base,
+                ),
+                stdout = subprocess.PIPE, shell = True,
+            )
+
+        return cls(model_dir_base, **kwargs)
 
 class TRTFrozenGraphPredictor(object):
 
@@ -139,7 +185,7 @@ class TFTRTFrozenGraphPredictor(object):
         if self.sess is not None:
             self.sess.close()
 
-class FrozenGraphPredictor(object):
+class FrozenGraphPredictor(FileGetter):
 
     def __init__(self, frozen_graph_path, input_nodes, output_names, input_map_fn = None, sess = None, **kwargs):
 
@@ -173,27 +219,6 @@ class FrozenGraphPredictor(object):
             for name in self.input_nodes
         })
 
-    @classmethod
-    def get(cls, url, *args , **kwargs):
-        
-        hash_name = str(hash(url))
-        filename = os.path.basename(url)
-
-        model_dir_base = os.path.join("/", "tmp", "tfinterface", "frozen_graphs", hash_name)
-        model_path = os.path.join(model_dir_base, filename)
-
-        if not os.path.exists(model_dir_base):
-            os.makedirs(model_dir_base)
-
-            subprocess.check_call(
-                "gsutil -m cp -R {source_folder} {dest_folder}".format(
-                    source_folder = url,
-                    dest_folder = model_dir_base,
-                ),
-                stdout = subprocess.PIPE, shell = True,
-            )
-
-        return cls(model_path, *args, **kwargs)
 
     def __del__(self):
         if self.sess is not None:
@@ -253,7 +278,7 @@ class EstimatorPredictor(object):
     def predict(self, **kwargs):
         return self._predictor(kwargs)
 
-class SavedModelPredictor(object):
+class SavedModelPredictor(FolderGetter):
 
     def __init__(self, export_dir, **kwargs):
         self._predictor = tf.contrib.predictor.from_saved_model(export_dir, **kwargs)
@@ -261,24 +286,7 @@ class SavedModelPredictor(object):
     def predict(self, **kwargs):
         return self._predictor(kwargs)
 
-
-    @classmethod
-    def get(cls, url, **kwargs):
-        hash_name = str(hash(url))
-        model_dir_base = os.path.join("/", "tmp", "tfinterface", "saved_models", hash_name)
-
-        if not os.path.exists(model_dir_base):
-            os.makedirs(model_dir_base)
-
-            subprocess.check_call(
-                "gsutil -m cp -R {source_folder}/* {dest_folder}".format(
-                    source_folder = url,
-                    dest_folder = model_dir_base,
-                ),
-                stdout = subprocess.PIPE, shell = True,
-            )
-
-        return cls(model_dir_base, **kwargs)
+    
 
 
 
