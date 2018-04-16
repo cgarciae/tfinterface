@@ -7,6 +7,7 @@ import sys
 from copy import deepcopy
 import time
 import subprocess
+import shutil
 
 
 class FileGetter(object):
@@ -14,12 +15,17 @@ class FileGetter(object):
     @classmethod
     def get(cls, url, *args , **kwargs):
         
+        rm = kwargs.pop("rm", False)
+
         hash_name = str(hash(url))
         filename = os.path.basename(url)
 
         home_path = os.path.expanduser('~')
         model_dir_base = os.path.join(home_path, ".local", "tfinterface", "frozen_graphs", hash_name)
         model_path = os.path.join(model_dir_base, filename)
+
+        if rm:
+            shutil.rmtree(model_dir_base)
 
         if not os.path.exists(model_dir_base):
             os.makedirs(model_dir_base)
@@ -39,10 +45,16 @@ class FolderGetter(object):
 
     @classmethod
     def get(cls, url, **kwargs):
+
+        rm = kwargs.pop("rm", False)
+
         hash_name = str(hash(url))
 
         home_path = os.path.expanduser('~')
         model_dir_base = os.path.join(home_path, ".local", "tfinterface", "saved_models", hash_name)
+
+        if rm:
+            shutil.rmtree(model_dir_base)
 
         if not os.path.exists(model_dir_base):
             os.makedirs(model_dir_base)
