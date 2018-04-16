@@ -187,10 +187,10 @@ class TFTRTFrozenGraphPredictor(object):
 
 class FrozenGraphPredictor(FileGetter):
 
-    def __init__(self, frozen_graph_path, input_nodes, output_names, input_map_fn = None, sess = None, **kwargs):
+    def __init__(self, frozen_graph_path, input_nodes, output_nodes, input_map_fn = None, sess = None, **kwargs):
 
         self.input_nodes = input_nodes
-        self.output_names = output_names
+        self.output_nodes = output_nodes
         self.sess = None
 
         # set name to "" to override the default which is "import"
@@ -214,7 +214,7 @@ class FrozenGraphPredictor(FileGetter):
         
     def predict(self, **kwargs):
 
-        return self.sess.run(self.output_names, feed_dict = {
+        return self.sess.run(self.output_nodes, feed_dict = {
             self.input_nodes[name]: kwargs[name] 
             for name in self.input_nodes
         })
