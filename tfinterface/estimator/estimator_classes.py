@@ -1,73 +1,8 @@
 from __future__ import absolute_import, print_function
 
 import tensorflow as tf
+from .getters import FileGetter, FolderGetter
 
-import os
-import sys
-from copy import deepcopy
-import time
-import subprocess
-import shutil
-
-
-class FileGetter(object):
-
-    @classmethod
-    def get(cls, url, *args , **kwargs):
-        
-        rm = kwargs.pop("rm", False)
-
-        hash_name = str(hash(url))
-        filename = os.path.basename(url)
-
-        home_path = os.path.expanduser('~')
-        model_dir_base = os.path.join(home_path, ".local", "tfinterface", "frozen_graphs", hash_name)
-        model_path = os.path.join(model_dir_base, filename)
-
-        if rm:
-            shutil.rmtree(model_dir_base)
-
-        if not os.path.exists(model_dir_base):
-            os.makedirs(model_dir_base)
-
-            subprocess.check_call(
-                "gsutil -m cp -R {source_folder} {dest_folder}".format(
-                    source_folder = url,
-                    dest_folder = model_dir_base,
-                ),
-                stdout = subprocess.PIPE, shell = True,
-            )
-
-        return cls(model_path, *args, **kwargs)
-
-
-class FolderGetter(object):
-
-    @classmethod
-    def get(cls, url, **kwargs):
-
-        rm = kwargs.pop("rm", False)
-
-        hash_name = str(hash(url))
-
-        home_path = os.path.expanduser('~')
-        model_dir_base = os.path.join(home_path, ".local", "tfinterface", "saved_models", hash_name)
-
-        if rm:
-            shutil.rmtree(model_dir_base)
-
-        if not os.path.exists(model_dir_base):
-            os.makedirs(model_dir_base)
-
-            subprocess.check_call(
-                "gsutil -m cp -R {source_folder}/* {dest_folder}".format(
-                    source_folder = url,
-                    dest_folder = model_dir_base,
-                ),
-                stdout = subprocess.PIPE, shell = True,
-            )
-
-        return cls(model_dir_base, **kwargs)
 
 class TRTFrozenGraphPredictor(object):
 
@@ -288,17 +223,7 @@ class EstimatorPredictor(object):
         self._predictor = tf.contrib.predictor.from_estimator(estimator, serving_input_fn)
 
     def predict(self, **kwargs):
-        return self._predictor(kwargs)
-
-class SavedModelPredictor(FolderGetter):
-
-    def __init__(self, export_dir, **kwargs):
-        self._predictor = tf.contrib.predictor.from_saved_model(export_dir, **kwargs)
-
-    def predict(self, **kwargs):
-        return self._predictor(kwargs)
-
-    
+        return self._predictor(kwargs) 
 
 
 
