@@ -16,6 +16,8 @@ class TFTRTFrozenGraphPredictor(FileGetter):
         self.input_nodes = input_nodes
         self.output_nodes = output_nodes
 
+        n_inputs = len(self.input_nodes)
+
         # set name to "" to override the default which is "import"
         kwargs.setdefault("name", "")
 
@@ -43,7 +45,19 @@ class TFTRTFrozenGraphPredictor(FileGetter):
                 **trt_ops
             )  # Get optimized graph
 
-            tf.import_graph_def(trt_graph, **kwargs)
+
+
+            tensors = tf.import_graph_def(
+                trt_graph,
+                return_elements = self.input_nodes.values() + self.output_nodes.values(),
+                **kwargs
+            )
+
+            input_tensors = tensors[:n_inputs]
+            output_tensors = tensors[n_inputs:]
+
+            self.input_nodes = {key: value for key, value in zip(self.input_nodes.keys(), input_tensors) }
+            self.output_nodes = {key: value for key, value in zip(self.output_nodes.keys(), output_tensors) }
 
 
     def predict(self, **kwargs):
