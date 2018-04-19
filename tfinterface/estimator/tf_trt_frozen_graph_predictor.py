@@ -9,8 +9,6 @@ class TFTRTFrozenGraphPredictor(FileGetter):
 
     def __init__(self, frozen_graph_path, input_nodes, output_nodes, trt_ops = {}, input_map_fn = None, engine = {}, **kwargs):
 
-        import pycuda.driver as cuda
-        import pycuda.autoinit
         from tensorflow.contrib import tensorrt as trt
 
         self.frozen_graph_path = frozen_graph_path
