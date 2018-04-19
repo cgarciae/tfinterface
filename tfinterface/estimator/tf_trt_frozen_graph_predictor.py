@@ -39,29 +39,27 @@ class TFTRTFrozenGraphPredictor(FileGetter):
 
             self.sess = tf.Session(graph = graph, config = config)
 
-            
+            # output_names = [ name.split(':')[0] for name in self.input_nodes.values()]
+            self.output_nodes = self.output_nodes
+            self.read_output_nodes = { key: name.split(":")[0] for key, name in self.output_nodes.items() }
+
             trt_graph = trt.create_inference_graph(
                 input_graph_def = graph_def,
-                outputs = self.output_nodes.values(),
+                outputs = self.read_output_nodes.values(),
                 **trt_ops
             )  # Get optimized graph
 
-
+            
 
             tensors = tf.import_graph_def(
                 trt_graph,
-                return_elements = self.input_nodes.values() + self.output_nodes.values(),
+                return_elements = self.input_nodes.values() + self.read_output_nodes.values(),
                 **kwargs
             )
 
             input_tensors = tensors[:n_inputs]
-            output_tensors = tensors[n_inputs:]
 
             self.input_nodes = {key: value for key, value in zip(self.input_nodes.keys(), input_tensors) }
-            # self.output_nodes = {key: value for key, value in zip(self.output_nodes.keys(), output_tensors) }
-
-            print("Input Tensors: {}".format(self.input_nodes))
-            print("Output Tensors: {}".format(self.output_nodes))
 
 
     def predict(self, **kwargs):
