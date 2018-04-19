@@ -56,6 +56,9 @@ class TFTRTFrozenGraphPredictor(FileGetter):
             input_tensors = tensors[:n_inputs]
             output_tensors = tensors[n_inputs:]
 
+            print("Input Tensors: {}".format(input_tensors))
+            print("Output Tensors: {}".format(output_tensors))
+
             self.input_nodes = {key: value for key, value in zip(self.input_nodes.keys(), input_tensors) }
             self.output_nodes = {key: value for key, value in zip(self.output_nodes.keys(), output_tensors) }
 
