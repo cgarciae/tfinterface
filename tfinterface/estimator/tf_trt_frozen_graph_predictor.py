@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 from .getters import FileGetter
 
 import tensorflow as tf
+import os
 
 
 class TFTRTFrozenGraphPredictor(FileGetter):
@@ -72,7 +73,7 @@ class TFTRTFrozenGraphPredictor(FileGetter):
 
     def show_graph(self):
         if not hasattr(self, "_writter"):
-            log_dir = os.path.basename(self.frozen_graph_path)
+            log_dir = os.path.dirname(self.frozen_graph_path)
             self._writter = tf.summary.FileWriter(log_dir, self.sess.graph)
 
     def __del__(self):
