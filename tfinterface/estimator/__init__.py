@@ -8,6 +8,7 @@ from .estimator_classes import (
 
 
 from .saved_model_predictor import SavedModelPredictor
+from .tf_trt_frozen_graph_predictor import TFTRTFrozenGraphPredictor
 
 from . import hooks
 
