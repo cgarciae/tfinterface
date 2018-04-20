@@ -27,11 +27,15 @@ class FileGetter(object):
         if not os.path.exists(model_dir_base):
             os.makedirs(model_dir_base)
 
+            cmd = "gsutil -m cp -R {source_folder} {dest_folder}".format(
+                source_folder = url,
+                dest_folder = model_dir_base,
+            )
+
+            print("CMD: {}".format(cmd))
+
             subprocess.check_call(
-                "gsutil -m cp -R {source_folder} {dest_folder}".format(
-                    source_folder = url,
-                    dest_folder = model_dir_base,
-                ),
+                cmd,
                 stdout = subprocess.PIPE, shell = True,
             )
 
