@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 
+import os
 import tensorflow as tf
 from .getters import FileGetter, FolderGetter
 
@@ -61,6 +62,7 @@ class FrozenGraphPredictor(FileGetter):
 
         self.input_nodes = input_nodes
         self.output_nodes = output_nodes
+        self.frozen_graph_path = frozen_graph_path
         self.sess = None
 
         # set name to "" to override the default which is "import"
@@ -70,7 +72,7 @@ class FrozenGraphPredictor(FileGetter):
 
         with self.graph.as_default():
 
-            with tf.gfile.GFile(frozen_graph_path, "rb") as f:
+            with tf.gfile.GFile(self.frozen_graph_path, "rb") as f:
                 graph_def = tf.GraphDef()
                 graph_def.ParseFromString(f.read())
 
@@ -81,7 +83,6 @@ class FrozenGraphPredictor(FileGetter):
             self.sess = tf.Session(graph = self.graph) if sess is None else sess
             tf.import_graph_def(graph_def, **kwargs)
 
-        
     def predict(self, **kwargs):
 
         return self.sess.run(self.output_nodes, feed_dict = {
@@ -89,6 +90,10 @@ class FrozenGraphPredictor(FileGetter):
             for name in self.input_nodes
         })
 
+    def show_graph(self):
+        if not hasattr(self, "_writter"):
+            log_dir = os.path.dirname(self.frozen_graph_path)
+            self._writter = tf.summary.FileWriter(log_dir, self.sess.graph)
 
     def __del__(self):
         if self.sess is not None:
@@ -106,7 +111,7 @@ class CheckpointPredictor(object):
             raise ValueError("Must pass model path or checkpoint path")
         elif model_dir:
             frozen_graph_path = tf.train.latest_checkpoint(model_dir)
-            
+
             if frozen_graph_path is None:
                 raise ValueError("Checkpoint not found at: {}".format(model_dir))
 
@@ -124,7 +129,7 @@ class CheckpointPredictor(object):
             saver = tf.train.import_meta_graph(meta_path, **kwargs)
             saver.restore(self.sess, frozen_graph_path)
 
-        
+
     def predict(self, **kwargs):
 
         return self.sess.run(self.output_names, feed_dict = {
@@ -137,7 +142,6 @@ class CheckpointPredictor(object):
             self.sess.close()
 
 
-        
 
 
 class EstimatorPredictor(object):
