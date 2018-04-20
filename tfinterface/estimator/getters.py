@@ -21,7 +21,7 @@ class FileGetter(object):
         model_dir_base = os.path.join(home_path, ".local", "tfinterface", "frozen_graphs", hash_name)
         model_path = os.path.join(model_dir_base, filename)
 
-        if rm:
+        if rm or (os.path.exists(model_dir_base) and len(os.listdir(model_dir_base)) == 0):
             shutil.rmtree(model_dir_base)
 
         if not os.path.exists(model_dir_base):
@@ -50,7 +50,7 @@ class FolderGetter(object):
         home_path = os.path.expanduser('~')
         model_dir_base = os.path.join(home_path, ".local", "tfinterface", "saved_models", hash_name)
 
-        if rm:
+        if rm or (os.path.exists(model_dir_base) and len(os.listdir(model_dir_base)) == 0):
             shutil.rmtree(model_dir_base)
 
         if not os.path.exists(model_dir_base):
