@@ -14,7 +14,7 @@ class FileGetter(object):
         
         rm = kwargs.pop("rm", False)
 
-        hash_name = str(hash(url))
+        hash_name = str(hash(url)).replace("-", "0")
         filename = os.path.basename(url)
 
         home_path = os.path.expanduser('~')
@@ -49,7 +49,7 @@ class FolderGetter(object):
 
         rm = kwargs.pop("rm", False)
 
-        hash_name = str(hash(url))
+        hash_name = str(hash(url)).replace("-", "0")
 
         home_path = os.path.expanduser('~')
         model_dir_base = os.path.join(home_path, ".local", "tfinterface", "saved_models", hash_name)
