@@ -2,7 +2,7 @@ from __future__ import absolute_import, print_function
 
 
 from .estimator_classes import (
-    TRTFrozenGraphPredictor, TFTRTFrozenGraphPredictor, FrozenGraphPredictor, CheckpointPredictor,
+    TRTFrozenGraphPredictor, FrozenGraphPredictor, CheckpointPredictor,
     EstimatorPredictor, TRTCheckpointPredictor, UFFPredictor, UFFPredictorV2,
 )
 

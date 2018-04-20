@@ -3,20 +3,21 @@ from __future__ import absolute_import, print_function
 from .getters import FileGetter
 
 import tensorflow as tf
+import os
 
 
 class TFTRTFrozenGraphPredictor(FileGetter):
 
     def __init__(self, frozen_graph_path, input_nodes, output_nodes, trt_ops = {}, input_map_fn = None, engine = {}, **kwargs):
 
-        import pycuda.driver as cuda
-        import pycuda.autoinit
         from tensorflow.contrib import tensorrt as trt
 
         self.frozen_graph_path = frozen_graph_path
 
         self.input_nodes = input_nodes
         self.output_nodes = output_nodes
+
+        n_inputs = len(self.input_nodes)
 
         # set name to "" to override the default which is "import"
         kwargs.setdefault("name", "")
@@ -38,14 +39,27 @@ class TFTRTFrozenGraphPredictor(FileGetter):
 
             self.sess = tf.Session(graph = graph, config = config)
 
-            
+            # output_names = [ name.split(':')[0] for name in self.input_nodes.values()]
+            self.output_nodes = self.output_nodes
+            self.read_output_nodes = { key: name.split(":")[0] for key, name in self.output_nodes.items() }
+
             trt_graph = trt.create_inference_graph(
                 input_graph_def = graph_def,
-                outputs = self.output_nodes.values(),
+                outputs = self.read_output_nodes.values(),
                 **trt_ops
             )  # Get optimized graph
 
-            tf.import_graph_def(trt_graph, **kwargs)
+            
+
+            tensors = tf.import_graph_def(
+                trt_graph,
+                return_elements = self.input_nodes.values() + self.read_output_nodes.values(),
+                **kwargs
+            )
+
+            input_tensors = tensors[:n_inputs]
+
+            self.input_nodes = {key: value for key, value in zip(self.input_nodes.keys(), input_tensors) }
 
 
     def predict(self, **kwargs):
@@ -57,7 +71,7 @@ class TFTRTFrozenGraphPredictor(FileGetter):
 
     def show_graph(self):
         if not hasattr(self, "_writter"):
-            log_dir = os.path.basename(self.frozen_graph_path)
+            log_dir = os.path.dirname(self.frozen_graph_path)
             self._writter = tf.summary.FileWriter(log_dir, self.sess.graph)
 
     def __del__(self):
