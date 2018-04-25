@@ -32,7 +32,7 @@ class FileGetter(object):
                 dest_folder = model_dir_base,
             )
 
-            print("CMD: {}".format(cmd))
+            # print("CMD: {}".format(cmd))
 
             subprocess.check_call(
                 cmd,
@@ -54,8 +54,15 @@ class FolderGetter(object):
         home_path = os.path.expanduser('~')
         model_dir_base = os.path.join(home_path, ".local", "tfinterface", "saved_models", hash_name)
 
-        if rm or (os.path.exists(model_dir_base) and len(os.listdir(model_dir_base)) == 0):
-            shutil.rmtree(model_dir_base)
+        if os.path.exists(model_dir_base):
+
+            is_empty = len(os.listdir(model_dir_base)) == 0
+            files_counts = [ os.path.join(dp, f) for dp, _, filenames in os.walk(model_dir_base) for f in filenames if f.endswith(".gstmp") ]
+            temp_files = len(files_counts) > 0
+
+            if rm or is_empty or temp_files:
+                shutil.rmtree(model_dir_base, ignore_errors = True)
+            
 
         if not os.path.exists(model_dir_base):
             os.makedirs(model_dir_base)
@@ -65,7 +72,7 @@ class FolderGetter(object):
                 dest_folder = model_dir_base,
             )
 
-            print("CMD: {}".format(cmd))
+            # print("CMD: {}".format(cmd))
 
             subprocess.check_call(
                 cmd,
