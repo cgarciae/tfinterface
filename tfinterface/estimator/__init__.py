@@ -1,5 +1,7 @@
 from __future__ import absolute_import, print_function
 
+from . import getters
+
 
 from .estimator_classes import (
     TRTFrozenGraphPredictor, FrozenGraphPredictor, CheckpointPredictor,
