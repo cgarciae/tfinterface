@@ -1,6 +1,10 @@
-import tensorflow as tf
+from __future__ import absolute_import, print_function
 
-class SavedModel2FrozenGraph(object):
+import tensorflow as tf
+from ..estimator.getters import FolderGetter
+
+
+class SavedModel2FrozenGraph(FolderGetter):
     """Example Google style docstrings.
 
     This class 

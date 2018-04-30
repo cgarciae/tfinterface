@@ -20,6 +20,7 @@ from . import base
 from . import supervised
 from . import layers
 from . import estimator
+from . import converters
 
 from .base import ModelBase
 from .base import Model
