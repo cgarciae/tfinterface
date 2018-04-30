@@ -10,7 +10,7 @@ class SavedModel2FrozenGraph(object):
         sections. Sections support any reStructuredText formatting, including
         literal blocks::
 
-            converter = ti.converters.SavedModel2FrozenGraph(export_dir)
+            converter = ti.converters.SavedModel2FrozenGraph(saved_model_dir)
             
             converter.dump(frozen_graph_path)
 
@@ -35,9 +35,9 @@ class SavedModel2FrozenGraph(object):
     """
 
 
-    def __init__(self, export_dir):
+    def __init__(self, saved_model_dir):
 
-        predictor = tf.contrib.predictor.from_savedmodel(export_dir)
+        predictor = tf.contrib.predictor.from_savedmodel(saved_model_dir)
 
         graph = predictor.graph
         sess = predictor.session
