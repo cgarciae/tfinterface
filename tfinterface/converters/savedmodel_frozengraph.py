@@ -41,7 +41,7 @@ class SavedModel2FrozenGraph(FolderGetter):
 
     def __init__(self, saved_model_dir):
 
-        predictor = tf.contrib.predictor.from_savedmodel(saved_model_dir)
+        predictor = tf.contrib.predictor.from_saved_model(saved_model_dir)
 
         graph = predictor.graph
         sess = predictor.session
