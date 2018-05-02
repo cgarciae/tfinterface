@@ -46,8 +46,9 @@ class SavedModel2FrozenGraph(FolderGetter):
         graph = predictor.graph
         sess = predictor.session
         output_nodes = [ t.name for t in predictor.fetch_tensors.values() ]
+        output_nodes = [ output.split(":")[0] for output in output_nodes ]
         input_nodes = [ t.name for t in predictor.feed_tensors.values() ]
-        
+        input_nodes = [ input.split(":")[0] for input in input_nodes ]
 
         graph_def = graph.as_graph_def()
         graph_def = tf.graph_util.convert_variables_to_constants(sess, graph_def, output_nodes)
