@@ -22,6 +22,8 @@ import numpy as np
 import os
 from datetime import datetime
 
+tf.image.crop_and_resize
+
 class Required(object):
     pass
 class RequiredTensor(Required):

@@ -126,8 +126,8 @@ class CheckpointPredictor(object):
                 kwargs["input_map"] = input_map
 
             self.sess = tf.Session(graph = self.graph)
-            saver = tf.train.import_meta_graph(meta_path, **kwargs)
-            saver.restore(self.sess, frozen_graph_path)
+            saver = tf.train.import_meta_graph(meta_path)
+            saver.restore(self.sess, frozen_graph_path) 
 
 
     def predict(self, **kwargs):

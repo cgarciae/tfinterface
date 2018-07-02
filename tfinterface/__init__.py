@@ -14,10 +14,10 @@ from __future__ import print_function, absolute_import, unicode_literals, divisi
 from .version import __version__
 
 from . import utils
-from . import decorators
+# from . import decorators
 from . import metrics
-from . import base
-from . import supervised
+# from . import base
+# from . import supervised
 from . import layers
 from . import estimator
 from . import converters

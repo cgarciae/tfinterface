@@ -1,3 +1,2 @@
-phi
 cytoolz
 numpy
