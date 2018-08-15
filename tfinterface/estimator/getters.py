@@ -13,12 +13,20 @@ class FileGetter(object):
     def get(cls, url, *args , **kwargs):
         
         rm = kwargs.pop("rm", False)
+        save_path = kwargs.pop("save_path", None)
 
         hash_name = str(hash(url)).replace("-", "0")
         filename = os.path.basename(url)
 
-        home_path = os.path.expanduser('~')
-        model_dir_base = os.path.join(home_path, ".local", "tfinterface", "frozen_graphs", hash_name)
+        if save_path:
+            model_dir_base = save_path
+        else:
+            home_path = os.path.expanduser('~')
+            model_dir_base = os.path.join(home_path, ".local", "tfinterface", "frozen_graphs")
+
+        
+        model_dir_base = os.path.join(model_dir_base, hash_name)
+
         model_path = os.path.join(model_dir_base, filename)
 
         if os.path.exists(model_dir_base):
@@ -54,12 +62,20 @@ class FolderGetter(object):
     def get(cls, url, **kwargs):
 
         rm = kwargs.pop("rm", False)
+        save_path = kwargs.pop("save_path", None)
 
         hash_name = str(hash(url)).replace("-", "0")
 
-        home_path = os.path.expanduser('~')
-        model_dir_base = os.path.join(home_path, ".local", "tfinterface", "saved_models", hash_name)
+        if save_path:
+            model_dir_base = save_path
+        else:
+            home_path = os.path.expanduser('~')
+            model_dir_base = os.path.join(home_path, ".local", "tfinterface", "saved_models")
 
+        
+        model_dir_base = os.path.join(model_dir_base, hash_name)
+
+        
         if os.path.exists(model_dir_base):
 
             is_empty = len(os.listdir(model_dir_base)) == 0
