@@ -493,28 +493,6 @@ def conv2d_densefire_block(net, bottleneck, growth_rate_1x1, growth_rate_3x3, n_
     return net
 
 
-#####################################
-# ensemble_dropout
-#####################################
-
-def layer_dropout(net, **kwargs):
-
-    name = kwargs.pop("name", None)
-
-    with tf.name_scope(name, default_name="LayerDropout"):
-        shape = tf.shape(net)
-        batche_size = shape[0]
-        ones_shape = [batche_size] + ([1] * (len(net.get_shape()) - 1))
-        ones = tf.ones(shape=ones_shape)
-
-        return net * tf.layers.dropout(ones, **kwargs)
-
-def ensemble_dropout(networks, **kwargs):
-
-    return (list)((_coconut.functools.partial(map, _coconut_partial(layer_dropout, {}, 1, **kwargs)))(networks))
-
-
-
 
 
 #####################################
@@ -522,46 +500,46 @@ def ensemble_dropout(networks, **kwargs):
 #####################################
 
 def relation_network(net, dense_fn, *args, **kwargs):
-# get kwargs
+    # get kwargs
     name = kwargs.pop("name", None)
     reduce_fn = kwargs.pop("reduce_fn", tf.reduce_sum)
 
-# get network shape
+    # get network shape
     shape = [-1] + [int(d) for d in net.get_shape()[1:]]
 
     with tf.name_scope(name, default_name="RelationNetwork"):
 
         if len(shape) > 2:
-# get object properties
+            # get object properties
             n_objects = np.prod(shape[1:-1])
             object_length = shape[-1]
 
-# get objects tensor
+            # get objects tensor
             objects = tf.reshape(net, shape=(-1, n_objects, object_length))
 
-# extract all pair of objects
+            # extract all pair of objects
             pairs = itertools.product(range(n_objects), range(n_objects))
             pairs = ((objects[:, a, :], objects[:, b, :]) for a, b in pairs)
             pairs = (tf.concat([a, b], axis=1) for a, b in pairs)
             pairs = list(pairs)
 
-# get pairs properties
+            # get pairs properties
             n_pairs = len(pairs)
 
-# fuse pairs into pairs tensor
+            # fuse pairs into pairs tensor
             net = tf.concat(pairs, axis=0)
 
-# construct pairs net
+            # construct pairs net
             net = dense_fn(net, *args, **kwargs)
 
-# count relations
+            # count relations
             n_relations = net.get_shape()[-1]
             n_relations = int(n_relations)
 
-# reshape to fix batch dimension
+            # reshape to fix batch dimension
             net = tf.reshape(net, shape=(-1, n_pairs, n_relations))
 
-# reduce to sum or average along the pairs dimension
+            # reduce to sum or average along the pairs dimension
             net = reduce_fn(net, axis=1)
 
             return net
@@ -570,20 +548,159 @@ def relation_network(net, dense_fn, *args, **kwargs):
             raise NotImplementedError("Tensors with dims <= 2 not supported for now, got {}".format(len(shape)))
 
 
+#####################################
+# add_coordinates
+#####################################
+
+def add_coordinates(net, min_value = -1.0, max_value = 1.0):
+
+    assert len(net.shape) > 2
+
+    sample_base_shape = [ dim.value for dim in net.shape[1:-1] ]
+
+    if not hasattr(min_value, "__iter__"):
+        min_value = [ min_value ] * len(sample_base_shape)
+
+    if not hasattr(max_value, "__iter__"):
+        max_value = [ max_value ] * len(sample_base_shape)
+
+    linspaces = [
+        tf.linspace(start, stop, num)
+        for start, stop, num in reversed(list(zip(min_value, max_value, sample_base_shape)))
+    ]
+
+    multiples = [tf.shape(net)[0]] + [1] * (len(net.shape) - 1)
+
+    coords = tf.meshgrid(*linspaces)
+    coords = tf.stack(coords, axis = -1)
+    coords = tf.expand_dims(coords, axis = 0)
+    coords = tf.tile(coords,multiples)
+
+    return tf.concat([net, coords], axis = -1)
+
+
+
+#####################################
+# get_relations
+#####################################
+
+def get_relations(inputs, num_related, main_shape = "flatten", structure = "product"):
+
+    assert len(inputs.shape) > 2
+
+    obj_shape = inputs.shape[1:-1]
+    num_objs = np.prod(obj_shape)
+    obj_size = inputs.shape[-1].value
+
+    net = tf.reshape(inputs, [-1, num_objs, obj_size])
+
+    if structure == "product":
+        relation_idxs_list = itertools.product(range(num_objs), repeat = num_related)
+    elif structure == "permutations":
+        relation_idxs_list = itertools.permutations(range(num_objs), num_related)
+    else:
+        raise ValueError(structure)
+
+
+    relations = tf.stack([
+        tf.concat([
+            net[:, idx, :] for idx in relation_idxs
+        ], axis = 1)
+        for relation_idxs in relation_idxs_list
+    ], axis = 1)
+
+
+    if structure == "product":
+        relation_shape = [num_objs] * (num_related - 1)
+        
+    elif structure == "permutations":
+        relation_shape = list(range(num_objs - 1, num_objs - num_related, -1))
+
+    if main_shape == "flatten":
+        shape = [num_objs]
+    elif main_shape == "same":
+        shape = list(obj_shape)
+    
+    relation_shape = [-1] + shape + relation_shape + [obj_size]
+
+    return tf.reshape(relations, relation_shape)
+
+
+def associative_module(f, alfa=0.5, training=None):
+    def _associative_module(inputs):
+
+        if training is None:
+            training_ = tf.keras.backend.learning_phase()
+        else:
+            training_ = training
+
+        x = tf.stop_gradient(inputs)
+
+        y = f(x)
+
+        if training:
+            tf.losses.mean_squared_error(x, y)
+            output = inputs
+        else:
+            output =  alfa * y + (1.0 - alfa) * x
+
+        return output
+
+    return _associative_module
+
+def associative_2d(inputs, depth, dropout_rate=None, alfa=0.5, training=None, activation=None, batch_normalization=False):
+
+    def f(inputs):
+        channels = inputs.shape[-1].value
+        net = inputs
+
+        if dropout_rate:
+            net = tf.layers.dropout(net, rate=dropout_rate, training=training)
+
+        for i in range(depth):
+            channels *= 2
+            net = tf.keras.layers.Conv2D(channels, [3, 3], strides=2, padding="same")(net)
+            
+            if batch_normalization:
+                net = tf.keras.layers.BatchNormalization()(net)
+            if activation:
+                net = tf.keras.layers.Activation(activation)(net)
+           
+
+        for i in range(depth):
+            channels //= 2
+            net = tf.keras.layers.Conv2DTranspose(channels, [3, 3], strides=2, padding="same")(net)
+            if batch_normalization:
+                net = tf.keras.layers.BatchNormalization()(net)
+            if activation:
+                net = tf.keras.layers.Activation(activation)(net)
+
+        if tuple(net.shape) != tuple(inputs.shape):
+            net = tf.image.resize_images(net, [inputs.shape[1], inputs.shape[2]])
+        
+        return net
+            
+
+    return associative_module(f, alfa=alfa, training=training)(inputs)
+
+
 if __name__ == '__main__':
 
-    sess = tf.Session()
+    tf.enable_eager_execution()
 
-    training = tf.placeholder(tf.bool, shape=())
-    x = tf.random_uniform(shape=(16, 3, 2))
+    x = tf.ones([1, 14, 14, 4], dtype=tf.float32)
 
+    print(list(x.shape))
 
-# f = fire(x, 32, 64, 64, activation=tf.nn.relu)
-# fb = fire_batch_norm(x, 32, 64, 64, activation=tf.nn.relu, batch_norm=dict(training=True))
-# print(f)
-# print(fb)
+    # x = get_relations(x, 1, main_shape="same", structure="permutations")
 
-    e = ensemble_dropout([x], rate=0.5, training=training)
+    # print(x.shape)
 
-    print(e)
-    print(sess.run(e, feed_dict={training: True}))
+    # net = tf.layers.dense(x, 8)
+
+    # print(net.shape)
+
+    net = associative_2d(x, 1)
+
+    print(net.shape)
+
