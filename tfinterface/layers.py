@@ -552,11 +552,11 @@ def relation_network(net, dense_fn, *args, **kwargs):
 # add_coordinates
 #####################################
 
-def add_coordinates(net, min_value = -1.0, max_value = 1.0):
+def add_coordinates(inputs, min_value = -1.0, max_value = 1.0):
 
-    assert len(net.shape) > 2
+    assert len(inputs.shape) > 2, "inputs must be of rank > 2"
 
-    sample_base_shape = [ dim.value for dim in net.shape[1:-1] ]
+    sample_base_shape = [ dim.value for dim in inputs.shape[1:-1] ]
 
     if not hasattr(min_value, "__iter__"):
         min_value = [ min_value ] * len(sample_base_shape)
@@ -569,14 +569,14 @@ def add_coordinates(net, min_value = -1.0, max_value = 1.0):
         for start, stop, num in reversed(list(zip(min_value, max_value, sample_base_shape)))
     ]
 
-    multiples = [tf.shape(net)[0]] + [1] * (len(net.shape) - 1)
+    multiples = [tf.shape(inputs)[0]] + [1] * (len(inputs.shape) - 1)
 
     coords = tf.meshgrid(*linspaces)
     coords = tf.stack(coords, axis = -1)
     coords = tf.expand_dims(coords, axis = 0)
     coords = tf.tile(coords,multiples)
 
-    return tf.concat([net, coords], axis = -1)
+    return tf.concat([inputs, coords], axis = -1)
 
 
 
